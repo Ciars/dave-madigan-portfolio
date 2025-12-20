@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { Trash2, Plus, UploadCloud, X, Loader2, Folder, Image as ImageIcon, ChevronRight, ArrowLeft, GripVertical, Layers, Grid } from 'lucide-react';
-import { Reorder, motion } from 'framer-motion';
+import { Reorder, motion, useDragControls } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function ArtworkManager() {
@@ -146,6 +146,12 @@ export default function ArtworkManager() {
     };
 
     const handleReorder = (newOrder) => {
+        // Deep equality check to prevent accidental triggers
+        const currentIds = items.map(i => i.id).join(',');
+        const newIds = newOrder.map(i => i.id).join(',');
+
+        if (currentIds === newIds) return;
+
         setItems(newOrder);
         setHasUnsavedChanges(true);
     };
@@ -282,7 +288,7 @@ export default function ArtworkManager() {
                                 group relative flex items-center gap-4 p-3 rounded-lg border transition-all duration-200
                                 ${item.type === 'folder' ? 'bg-white border-gray-200 hover:border-black/20 hover:shadow-sm' : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'}
                             `}>
-                                    <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500"><GripVertical size={18} /></div>
+                                    <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 p-2 -ml-2 rounded hover:bg-black/5 transition-colors"><GripVertical size={18} /></div>
                                     <div
                                         onClick={() => item.type === 'folder' && enterFolder(item)}
                                         className={`w-12 h-12 flex items-center justify-center rounded overflow-hidden cursor-pointer ${item.type === 'folder' ? 'bg-blue-50 text-blue-500' : 'bg-gray-200'}`}
@@ -304,30 +310,34 @@ export default function ArtworkManager() {
             }
 
             {/* Models */}
-            {showCreateFolder && (
-                <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm animate-in zoom-in-95 duration-200">
-                        <h3 className="font-serif text-lg mb-4">New Collection</h3>
-                        <form onSubmit={handleCreateFolder}>
-                            <input autoFocus placeholder="Name" className="w-full border border-gray-200 rounded-lg p-3 mb-4 outline-none focus:border-black" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} />
-                            <div className="flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowCreateFolder(false)} className="px-4 py-2 text-sm text-gray-500">Cancel</button>
-                                <button disabled={!newFolderName} className="bg-black text-white px-4 py-2 rounded-lg text-sm">Create</button>
-                            </div>
-                        </form>
+            {
+                showCreateFolder && (
+                    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
+                        <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm animate-in zoom-in-95 duration-200">
+                            <h3 className="font-serif text-lg mb-4">New Collection</h3>
+                            <form onSubmit={handleCreateFolder}>
+                                <input autoFocus placeholder="Name" className="w-full border border-gray-200 rounded-lg p-3 mb-4 outline-none focus:border-black" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} />
+                                <div className="flex justify-end gap-2">
+                                    <button type="button" onClick={() => setShowCreateFolder(false)} className="px-4 py-2 text-sm text-gray-500">Cancel</button>
+                                    <button disabled={!newFolderName} className="bg-black text-white px-4 py-2 rounded-lg text-sm">Create</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            )}
+                )
+            }
 
-            {showUpload && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
-                    <UploadModal
-                        onClose={() => setShowUpload(false)}
-                        collectionId={currentCollection?.id}
-                        onSuccess={fetchContent}
-                    />
-                </div>
-            )}
+            {
+                showUpload && (
+                    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
+                        <UploadModal
+                            onClose={() => setShowUpload(false)}
+                            collectionId={currentCollection?.id}
+                            onSuccess={fetchContent}
+                        />
+                    </div>
+                )
+            }
         </div >
     );
 }
