@@ -1,4 +1,6 @@
+import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { supabase } from './supabaseClient';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
@@ -6,22 +8,35 @@ import WorkGrid from './components/WorkGrid';
 import Exhibitions from './components/Exhibitions';
 import Contact from './components/Contact';
 import LoginPage from './admin/LoginPage';
-// import Dashboard from './admin/Dashboard'; // Deprecated in favor of layout + sub-pages
 import AdminLayout from './admin/AdminLayout';
 import ArtworkManager from './admin/ArtworkManager';
 import ExhibitionManager from './admin/ExhibitionManager';
 import SubscriberManager from './admin/SubscriberManager';
 import Settings from './admin/Settings';
+import SiteManager from './admin/SiteManager';
 
 function MainSite() {
+    const [config, setConfig] = useState(null);
+
+    useEffect(() => {
+        const fetchConfig = async () => {
+            const { data } = await supabase.from('site_config').select('header_settings, footer_settings').eq('id', 1).single();
+            if (data) setConfig(data);
+        };
+        fetchConfig();
+    }, []);
+
+    const header = config?.header_settings || {};
+    const footer = config?.footer_settings || {};
+
     return (
         <main className="bg-[#050505] min-h-screen text-[#e5e5e5] selection:bg-white selection:text-black">
-            <Navigation />
+            <Navigation title={header.title} />
             <Hero />
             <WorkGrid />
             <About />
             <Exhibitions />
-            <Contact />
+            <Contact footerSettings={footer} />
         </main>
     );
 }
@@ -56,6 +71,7 @@ function App() {
                 {/* Secure Admin Area */}
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route path="dashboard" element={<Overview />} />
+                    <Route path="site-content" element={<SiteManager />} />
                     <Route path="artworks" element={<ArtworkManager />} />
                     <Route path="exhibitions" element={<ExhibitionManager />} />
                     <Route path="subscribers" element={<SubscriberManager />} />

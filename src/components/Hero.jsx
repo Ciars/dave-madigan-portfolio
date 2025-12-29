@@ -1,6 +1,42 @@
 import { motion } from 'framer-motion';
+import { useEffect, useState } from 'react';
+import { supabase } from '../supabaseClient';
 
 const Hero = () => {
+    const [content, setContent] = useState({
+        hero_title: 'Distorting Reality',
+        hero_subtitle: 'Exploring the increasing remove from the natural world through surreal depictions of technological artefacts.',
+        hero_image_url: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1200&auto=format&fit=crop'
+    });
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            const { data } = await supabase.from('site_content').select('*').single();
+            if (data) {
+                setContent({
+                    hero_title: data.hero_title || content.hero_title,
+                    hero_subtitle: data.hero_subtitle || content.hero_subtitle,
+                    hero_image_url: data.hero_image_url || content.hero_image_url
+                });
+            }
+            // Trigger animation even if load is instant
+            setTimeout(() => setLoading(false), 100);
+        };
+        fetchContent();
+    }, []);
+
+    // Split title for styling if needed, or just render normally
+    const titleParts = content.hero_title.split(' ');
+    const displayTitle = titleParts.length > 1 ? (
+        <>
+            {titleParts.slice(0, -1).join(' ')} <br />
+            <span className="italic text-gray-500">{titleParts[titleParts.length - 1]}</span>
+        </>
+    ) : content.hero_title;
+
+    if (loading) return <div className="min-h-screen bg-[#050505]" />; // Avoids flash of wrong content
+
     return (
         <section className="min-h-screen w-full relative flex items-center pl-16 md:pl-24 overflow-hidden bg-[#050505]">
 
@@ -24,8 +60,7 @@ const Hero = () => {
                         transition={{ delay: 0.2, duration: 0.8 }}
                         className="text-5xl md:text-7xl font-serif mb-6 leading-[0.9]"
                     >
-                        Distorting <br />
-                        <span className="italic text-gray-500">Reality</span>
+                        {displayTitle}
                     </motion.h1>
 
                     <motion.div
@@ -35,7 +70,7 @@ const Hero = () => {
                         className="space-y-6 max-w-md"
                     >
                         <p className="text-gray-400 font-light leading-relaxed">
-                            Exploring the increasing remove from the natural world through surreal depictions of technological artefacts.
+                            {content.hero_subtitle}
                         </p>
                         <div className="flex gap-4 text-xs font-mono uppercase tracking-widest text-gray-600">
                             <span>Oil on Canvas</span>
@@ -54,7 +89,7 @@ const Hero = () => {
                         className="relative z-10"
                     >
                         <img
-                            src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?q=80&w=1200&auto=format&fit=crop"
+                            src={content.hero_image_url}
                             alt="Hero Art"
                             className="w-full h-auto shadow-2xl grayscale hover:grayscale-0 transition-all duration-700 ease-in-out"
                         />
