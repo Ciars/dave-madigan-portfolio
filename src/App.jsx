@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { supabase } from './supabaseClient';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
@@ -65,11 +65,12 @@ function App() {
                 {/* Public Site */}
                 <Route path="/" element={<MainSite />} />
 
-                {/* Admin Auth */}
-                <Route path="/admin" element={<LoginPage />} />
+                {/* Auth */}
+                <Route path="/login" element={<LoginPage />} />
 
                 {/* Secure Admin Area */}
                 <Route path="/admin" element={<AdminLayout />}>
+                    <Route index element={<Overview />} />
                     <Route path="dashboard" element={<Overview />} />
                     <Route path="site-content" element={<SiteManager />} />
                     <Route path="artworks" element={<ArtworkManager />} />
