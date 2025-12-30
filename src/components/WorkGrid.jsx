@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useArtworks } from '../hooks/useContent';
-import { X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { X, ChevronLeft, ChevronRight, Plus, ExternalLink } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 const WorkGrid = () => {
     const { artworks, loading } = useArtworks();
@@ -19,6 +20,16 @@ const WorkGrid = () => {
         if (newIndex >= artworks.length) newIndex = 0;
         setSelectedId(artworks[newIndex].id);
     }, [currentIndex, artworks]);
+
+    // Track View Count
+    useEffect(() => {
+        if (selectedId) {
+            supabase.rpc('increment_artwork_view', { artwork_id: selectedId })
+                .then(({ error }) => {
+                    if (error) console.error('Error incrementing view:', error);
+                });
+        }
+    }, [selectedId]);
 
     // Keyboard Controls
     useEffect(() => {
@@ -189,6 +200,33 @@ const WorkGrid = () => {
                                                     <span className="opacity-40">Timeline</span>
                                                     <span className="text-white font-medium text-xs tracking-normal">{selectedImage.year || '2024'}</span>
                                                 </div>
+
+                                                {selectedImage.description && (
+                                                    <div className="flex flex-col border-b border-white/5 pb-6 gap-3">
+                                                        <span className="opacity-40">Description</span>
+                                                        <div className="text-white font-medium text-xs tracking-normal normal-case leading-relaxed space-y-3">
+                                                            {selectedImage.description.split('\n').map((para, i) => (
+                                                                <p key={i}>{para}</p>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedImage.print_url && (
+                                                    <div className="pt-2">
+                                                        <motion.a
+                                                            href={selectedImage.print_url}
+                                                            target="_blank"
+                                                            rel="noopener noreferrer"
+                                                            whileHover={{ scale: 1.02 }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            className="flex items-center justify-center gap-3 w-full bg-white text-black py-5 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] shadow-2xl hover:bg-gray-200 transition-all"
+                                                        >
+                                                            Buy Limited Print
+                                                            <ExternalLink size={14} strokeWidth={3} />
+                                                        </motion.a>
+                                                    </div>
+                                                )}
                                             </div>
                                         </motion.div>
                                     </AnimatePresence>

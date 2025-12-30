@@ -43,26 +43,91 @@ function MainSite() {
     );
 }
 
-// Placeholder for the Overview Dashboard
-const Overview = () => (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <h2 className="text-4xl font-serif mb-10 tracking-tight">Studio Overview</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Managed Artworks</p>
-                <p className="text-4xl font-serif">24</p>
+const Overview = () => {
+    const [stats, setStats] = useState({ artworks: 0, exhibitions: 0, subscribers: 0, topArtworks: [] });
+    const [loading, setLoading] = useState(true);
+    const [showAllArtworks, setShowAllArtworks] = useState(false);
+
+    useEffect(() => {
+        const fetchStats = async () => {
+            const [artworks, exhibitions, subscribers, topArtworks] = await Promise.all([
+                supabase.from('artworks').select('id', { count: 'exact', head: true }),
+                supabase.from('exhibitions').select('id', { count: 'exact', head: true }),
+                supabase.from('subscribers').select('id', { count: 'exact', head: true }),
+                supabase.from('artworks').select('title, view_count').order('view_count', { ascending: false }).limit(20)
+            ]);
+
+            setStats({
+                artworks: artworks.count || 0,
+                exhibitions: exhibitions.count || 0,
+                subscribers: subscribers.count || 0,
+                topArtworks: topArtworks.data || []
+            });
+            setLoading(false);
+        };
+        fetchStats();
+    }, []);
+
+    const visibleArtworks = showAllArtworks ? stats.topArtworks : stats.topArtworks.slice(0, 10);
+
+    if (loading) return <div className="animate-pulse text-gray-500 font-mono text-xs uppercase tracking-widest">Compiling Studio Data...</div>;
+
+    return (
+        <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <h2 className="text-4xl font-serif mb-10 tracking-tight">Studio Overview</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl group hover:border-white/10 transition-colors">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Managed Artworks</p>
+                    <p className="text-4xl font-serif">{stats.artworks}</p>
+                </div>
+                <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl group hover:border-white/10 transition-colors">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Exhibitions History</p>
+                    <p className="text-4xl font-serif">{stats.exhibitions}</p>
+                </div>
+                <div className="p-8 bg-[#151515] border border-white/5 rounded-3xl shadow-2xl group hover:border-white/10 transition-colors">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Newsletter Sync</p>
+                    <p className="text-4xl font-serif">{stats.subscribers}</p>
+                </div>
             </div>
-            <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Exhibitions History</p>
-                <p className="text-4xl font-serif">12</p>
-            </div>
-            <div className="p-8 bg-[#151515] border border-white/5 rounded-3xl shadow-2xl">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Newsletter Sync</p>
-                <p className="text-4xl font-serif">84</p>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl">
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-8 border-b border-white/5 pb-4">Most Popular Artworks</h3>
+                    <div className="space-y-6">
+                        {visibleArtworks.map((artwork, i) => (
+                            <div key={i} className="flex justify-between items-center group">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-[10px] font-mono text-gray-700">{String(i + 1).padStart(2, '0')}</span>
+                                    <span className="text-sm font-medium text-white group-hover:text-gray-300 transition-colors">{artwork.title}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-lg font-serif italic text-white">{artwork.view_count || 0}</span>
+                                    <span className="text-[9px] font-mono text-gray-600 uppercase tracking-tighter">views</span>
+                                </div>
+                            </div>
+                        ))}
+                        {stats.topArtworks.length === 0 && <p className="text-xs text-gray-600 italic">No view data collected yet.</p>}
+
+                        {stats.topArtworks.length > 10 && (
+                            <button
+                                onClick={() => setShowAllArtworks(!showAllArtworks)}
+                                className="w-full pt-4 text-[10px] uppercase tracking-[0.2em] text-gray-500 hover:text-white transition-colors border-t border-white/5"
+                            >
+                                {showAllArtworks ? 'Show Less' : `Show All (${stats.topArtworks.length})`}
+                            </button>
+                        )}
+                    </div>
+                </div>
+
+                <div className="p-8 bg-[#111111]/50 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center text-center">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-600 mb-2">Insight Pipeline</p>
+                    <p className="text-xs text-gray-500 max-w-[200px]">More conversion metrics will appear here as visitors interact with your gallery.</p>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 function App() {
     return (

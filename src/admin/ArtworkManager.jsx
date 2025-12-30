@@ -242,7 +242,8 @@ export default function ArtworkManager() {
                     title: editingItem.title,
                     medium: editingItem.medium,
                     year: editingItem.year,
-                    description: editingItem.description
+                    description: editingItem.description,
+                    print_url: editingItem.print_url
                 })
                 .eq('id', editingItem.id);
 
@@ -460,6 +461,16 @@ export default function ArtworkManager() {
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-white text-white transition-all resize-none h-40 text-sm leading-relaxed"
                                                 placeholder="A brief history of the piece..."
                                             />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em] mb-3">Print Purchase URL</label>
+                                            <input
+                                                value={editingItem.print_url || ''}
+                                                onChange={e => setEditingItem({ ...editingItem, print_url: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-white text-white transition-all text-sm"
+                                                placeholder="e.g. https://shop.davemadigan.com/print/..."
+                                            />
+                                            <p className="text-[10px] text-gray-600 mt-2 ml-1">If provided, a "Buy Print" button will appear in the gallery viewer.</p>
                                         </div>
                                     </div>
 
