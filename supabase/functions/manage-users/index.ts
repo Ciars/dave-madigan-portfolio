@@ -27,6 +27,17 @@ serve(async (req) => {
             );
         }
 
+        // SECURITY: Whitelist check
+        // ⚠️ REPLACE WITH YOUR ACTUAL ADMIN EMAIL(S) ⚠️
+        const ALLOWED_ADMINS = ["INSERT_YOUR_EMAIL_HERE"];
+
+        if (!ALLOWED_ADMINS.includes(user.email ?? "")) {
+            return new Response(
+                JSON.stringify({ error: "Forbidden: You are not an admin." }),
+                { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+            );
+        }
+
         const adminClient = createClient(
             Deno.env.get("SUPABASE_URL") ?? "",
             Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""

@@ -275,40 +275,40 @@ export default function ArtworkManager() {
 
     return (
 
-        <div className="space-y-6">
+        <div className="space-y-10">
             {/* Header */}
-            <div className="sticky top-0 bg-[#FDFBF7]/95 backdrop-blur z-40 pb-4 pt-2 -mt-2 border-b border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xl font-serif">
+            <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-xl z-40 pb-6 pt-2 -mt-2 border-b border-white/5 flex items-center justify-between">
+                <div className="flex items-center gap-3 text-2xl font-serif tracking-tight">
                     <button
                         onClick={goUp}
                         disabled={view === 'root'}
-                        className={`hover:bg-gray-100 p-1 rounded transition-colors ${view === 'root' ? 'text-gray-900 cursor-default' : 'text-gray-400 hover:text-black'}`}
+                        className={`hover:bg-white/5 px-2 py-1 rounded-lg transition-all ${view === 'root' ? 'text-white cursor-default' : 'text-gray-600 hover:text-white'}`}
                     >
                         Portfolio
                     </button>
                     {view === 'folder' && (
                         <>
-                            <ChevronRight size={18} className="text-gray-300" />
-                            <span className="font-bold">{currentCollection?.title}</span>
+                            <ChevronRight size={20} className="text-gray-800" />
+                            <span className="font-bold text-white">{currentCollection?.title}</span>
                         </>
                     )}
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     {hasUnsavedChanges ? (
                         <>
-                            <button onClick={cancelReorder} className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-900">Cancel</button>
-                            <button onClick={saveOrder} className="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 shadow-lg shadow-green-600/20">Save Order</button>
+                            <button onClick={cancelReorder} className="px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancel</button>
+                            <button onClick={saveOrder} className="bg-white text-black px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 shadow-xl shadow-white/5 transition-all">Save Order</button>
                         </>
                     ) : (
                         <>
                             {view === 'root' && (
-                                <button onClick={() => setShowCreateFolder(true)} className="flex items-center gap-2 bg-white border border-gray-200 text-gray-900 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors">
-                                    <Plus size={16} /> New Collection
+                                <button onClick={() => setShowCreateFolder(true)} className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">
+                                    <Plus size={16} /> <span className="hidden sm:inline">New Collection</span>
                                 </button>
                             )}
-                            <button onClick={() => setShowUpload(true)} className="flex items-center gap-2 bg-black text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 shadow-lg shadow-black/10">
-                                <UploadCloud size={16} /> Upload Images
+                            <button onClick={() => setShowUpload(true)} className="flex items-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 shadow-xl shadow-white/5 transition-all">
+                                <UploadCloud size={16} /> <span className="hidden sm:inline">Upload Images</span>
                             </button>
                         </>
                     )}
@@ -325,35 +325,35 @@ export default function ArtworkManager() {
                         <p>This folder is empty.</p>
                     </div>
                 ) : (
-                    <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-2">
+                    <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-3">
                         {items.map(item => (
                             <Reorder.Item key={`${item.type}-${item.id}`} value={item}>
                                 <div className={`
-                                group relative flex items-center gap-4 p-3 rounded-lg border transition-all duration-200
-                                ${item.type === 'folder' ? 'bg-white border-gray-200 hover:border-black/20 hover:shadow-sm' : 'bg-gray-50 border-transparent hover:bg-white hover:border-gray-200'}
+                                group relative flex items-center gap-5 p-4 rounded-2xl border transition-all duration-300
+                                ${item.type === 'folder' ? 'bg-[#151515] border-white/5 hover:border-white/20 hover:shadow-2xl hover:shadow-black/50' : 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/5'}
                             `}>
-                                    <div className="cursor-grab active:cursor-grabbing text-gray-300 hover:text-gray-500 p-2 -ml-2 rounded hover:bg-black/5 transition-colors"><GripVertical size={18} /></div>
+                                    <div className="cursor-grab active:cursor-grabbing text-gray-700 hover:text-white p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors"><GripVertical size={20} /></div>
                                     <div
                                         onClick={() => item.type === 'folder' && enterFolder(item)}
-                                        className={`w-12 h-12 flex items-center justify-center rounded overflow-hidden cursor-pointer ${item.type === 'folder' ? 'bg-blue-50 text-blue-500' : 'bg-gray-200'}`}
+                                        className={`w-14 h-14 flex items-center justify-center rounded-xl overflow-hidden cursor-pointer shadow-lg transition-transform group-hover:scale-105 ${item.type === 'folder' ? 'bg-white/5 text-white' : 'bg-[#222]'}`}
                                     >
-                                        {item.type === 'folder' ? <Folder size={24} fill="currentColor" className="opacity-20" /> : <img src={item.image_url} className="w-full h-full object-cover" />}
+                                        {item.type === 'folder' ? <Folder size={24} className="opacity-40" /> : <img src={item.image_url} className="w-full h-full object-cover" />}
                                     </div>
                                     <div className="flex-1 cursor-pointer" onClick={() => item.type === 'folder' && enterFolder(item)}>
-                                        <h3 className="font-medium text-sm">{item.title}</h3>
-                                        <p className="text-xs text-gray-400">{item.type === 'folder' ? 'Collection' : item.medium || 'Artwork'}</p>
+                                        <h3 className="font-medium text-sm tracking-tight text-white mb-0.5">{item.title}</h3>
+                                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">{item.type === 'folder' ? 'Collection' : item.medium || 'Artwork'}</p>
                                     </div>
-                                    <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                                         {item.type === 'file' && (
                                             <button
                                                 onClick={() => setEditingItem(item)}
-                                                className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded"
+                                                className="p-2.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all"
                                                 title="Edit Metadata"
                                             >
-                                                <ImageIcon size={16} />
+                                                <ImageIcon size={18} />
                                             </button>
                                         )}
-                                        <button onClick={() => handleDelete(item)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
+                                        <button onClick={() => handleDelete(item)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
                                     </div>
 
                                 </div>
@@ -366,14 +366,20 @@ export default function ArtworkManager() {
             {/* Models */}
             {
                 showCreateFolder && (
-                    <div className="fixed inset-0 bg-black/20 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                        <div className="bg-white p-6 rounded-xl shadow-xl w-full max-w-sm animate-in zoom-in-95 duration-200">
-                            <h3 className="font-serif text-lg mb-4">New Collection</h3>
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-6">
+                        <div className="bg-[#151515] p-10 rounded-3xl shadow-2xl border border-white/5 w-full max-w-md animate-in zoom-in-95 duration-200">
+                            <h3 className="font-serif text-2xl mb-6 text-white tracking-tight">New Collection</h3>
                             <form onSubmit={handleCreateFolder}>
-                                <input autoFocus placeholder="Name" className="w-full border border-gray-200 rounded-lg p-3 mb-4 outline-none focus:border-black" value={newFolderName} onChange={e => setNewFolderName(e.target.value)} />
-                                <div className="flex justify-end gap-2">
-                                    <button type="button" onClick={() => setShowCreateFolder(false)} className="px-4 py-2 text-sm text-gray-500">Cancel</button>
-                                    <button disabled={!newFolderName} className="bg-black text-white px-4 py-2 rounded-lg text-sm">Create</button>
+                                <input
+                                    autoFocus
+                                    placeholder="Folder Name"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl p-4 mb-8 outline-none focus:border-white text-white placeholder-gray-600 transition-all"
+                                    value={newFolderName}
+                                    onChange={e => setNewFolderName(e.target.value)}
+                                />
+                                <div className="flex justify-end gap-4">
+                                    <button type="button" onClick={() => setShowCreateFolder(false)} className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancel</button>
+                                    <button disabled={!newFolderName} className="bg-white text-black px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-50">Create</button>
                                 </div>
                             </form>
                         </div>
@@ -394,71 +400,82 @@ export default function ArtworkManager() {
                 )
             }
 
-            {/* Edit Metadata Modal */}
+            {/* Edit Metadata Modal - Mobile Responsive Overhaul */}
             {editingItem && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+                <div className="fixed inset-0 bg-black z-[100] md:bg-black/60 md:backdrop-blur-md flex items-center justify-center p-0 md:p-6 overflow-y-auto">
+                    <div className="bg-[#111111] md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 min-h-screen md:min-h-0 flex flex-col">
 
-                        <div className="flex">
-                            <div className="w-1/3 bg-gray-50 p-6 border-r border-gray-100 flex items-center justify-center">
-                                <img src={editingItem.image_url} className="w-full h-auto rounded shadow-lg" alt="Preview" />
+                        {/* Mobile Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-white/5 md:hidden">
+                            <h3 className="text-xl font-serif">Edit Metadata</h3>
+                            <button onClick={() => setEditingItem(null)} className="p-2 text-gray-500"><X size={24} /></button>
+                        </div>
+
+                        <div className="flex flex-col md:flex-row flex-1">
+                            {/* Image Preview Area */}
+                            <div className="w-full md:w-[45%] bg-black/40 p-10 flex items-center justify-center border-b md:border-b-0 md:border-r border-white/5">
+                                <img src={editingItem.image_url} className="w-full h-auto max-h-[40vh] md:max-h-full object-contain rounded-lg shadow-2xl shadow-black ring-1 ring-white/10" alt="Preview" />
                             </div>
-                            <div className="flex-1 p-8">
-                                <h3 className="text-2xl font-serif mb-6">Edit Artwork</h3>
-                                <form onSubmit={handleUpdateMetadata} className="space-y-4">
-                                    <div>
-                                        <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Title</label>
-                                        <input
-                                            autoFocus
-                                            value={editingItem.title}
-                                            onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
-                                            className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
-                                            placeholder="Artwork Title"
-                                        />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-4">
+
+                            {/* Form Area */}
+                            <div className="flex-1 p-8 md:p-12 overflow-y-auto">
+                                <h3 className="text-3xl font-serif mb-8 hidden md:block tracking-tight text-white">Artwork Details</h3>
+                                <form onSubmit={handleUpdateMetadata} className="space-y-8">
+                                    <div className="space-y-6">
                                         <div>
-                                            <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Medium</label>
+                                            <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em] mb-3">Master Title</label>
                                             <input
-                                                value={editingItem.medium}
-                                                onChange={e => setEditingItem({ ...editingItem, medium: e.target.value })}
-                                                className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
-                                                placeholder="e.g. Oil on Canvas"
+                                                autoFocus
+                                                value={editingItem.title}
+                                                onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-white text-white transition-all text-lg"
+                                                placeholder="Enter title"
                                             />
                                         </div>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                            <div>
+                                                <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em] mb-3">Medium</label>
+                                                <input
+                                                    value={editingItem.medium}
+                                                    onChange={e => setEditingItem({ ...editingItem, medium: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-white text-white transition-all"
+                                                    placeholder="e.g. Oil on Canvas"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em] mb-3">Created Year</label>
+                                                <input
+                                                    value={editingItem.year}
+                                                    onChange={e => setEditingItem({ ...editingItem, year: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 outline-none focus:border-white text-white transition-all"
+                                                    placeholder="YYYY"
+                                                />
+                                            </div>
+                                        </div>
                                         <div>
-                                            <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Year</label>
-                                            <input
-                                                value={editingItem.year}
-                                                onChange={e => setEditingItem({ ...editingItem, year: e.target.value })}
-                                                className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
-                                                placeholder="2024"
+                                            <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em] mb-3">Description / Provenance</label>
+                                            <textarea
+                                                value={editingItem.description || ''}
+                                                onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 outline-none focus:border-white text-white transition-all resize-none h-40 text-sm leading-relaxed"
+                                                placeholder="A brief history of the piece..."
                                             />
                                         </div>
-                                    </div>
-                                    <div>
-                                        <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">About</label>
-                                        <textarea
-                                            value={editingItem.description || ''}
-                                            onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
-                                            className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors resize-none h-32"
-                                            placeholder="A paragraph or two explaining the artwork..."
-                                        />
                                     </div>
 
-                                    <div className="flex justify-end gap-3 pt-6">
+                                    <div className="flex flex-col sm:flex-row justify-end gap-4 pt-4">
                                         <button
                                             type="button"
                                             onClick={() => setEditingItem(null)}
-                                            className="px-6 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                                            className="px-8 py-4 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
                                         >
-                                            Cancel
+                                            Discard
                                         </button>
                                         <button
                                             type="submit"
-                                            className="bg-black text-white px-8 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors"
+                                            className="bg-white text-black px-12 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl shadow-white/5 active:scale-[0.98]"
                                         >
-                                            Save Changes
+                                            Apply Changes
                                         </button>
                                     </div>
                                 </form>
@@ -543,22 +560,75 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
     };
 
     return (
-        <div className="bg-white rounded-xl w-full max-w-4xl shadow-2xl flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b flex justify-between items-center"><h2 className="text-xl font-serif">Upload</h2><button onClick={onClose}><X /></button></div>
-            <div className="flex-1 overflow-auto p-6 flex gap-6">
-                <div className="w-1/3 space-y-4">
-                    <input className="w-full p-2 border rounded" value={year} onChange={e => setYear(e.target.value)} placeholder="Year" />
-                    <input className="w-full p-2 border rounded" value={medium} onChange={e => setMedium(e.target.value)} placeholder="Medium" />
-                    <label className="block border-2 border-dashed h-32 flex items-center justify-center cursor-pointer hover:bg-gray-50 rounded-xl"><input type="file" multiple hidden onChange={handleFileSelect} />Add Files</label>
+        <div className="fixed inset-0 bg-black z-[100] md:bg-black/60 md:backdrop-blur-md flex items-center justify-center p-0 md:p-6 overflow-hidden">
+            <div className="bg-[#111111] md:rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col h-screen md:h-[80vh] overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
+
+                {/* Header */}
+                <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-[#151515]">
+                    <div>
+                        <h2 className="text-2xl font-serif text-white tracking-tight">Image Studio</h2>
+                        <p className="text-[10px] font-mono uppercase tracking-[0.2em] text-gray-500 mt-1">Batch Uploading</p>
+                    </div>
+                    <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all"><X size={20} /></button>
                 </div>
-                <div className="flex-1 space-y-2">
-                    {stagedFiles.map((f, i) => (
-                        <div key={i} className="flex gap-4 items-center p-2 border rounded"><img src={f.preview} className="w-10 h-10 rounded object-cover" /> <span className="text-sm font-medium">{f.title}</span></div>
-                    ))}
-                    {stagedFiles.length === 0 && <p className="text-gray-400 text-center mt-10">No files</p>}
+
+                <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
+                    {/* Controls Side */}
+                    <div className="w-full md:w-80 p-8 border-b md:border-b-0 md:border-r border-white/5 bg-[#121212] space-y-8">
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-2">Global Year</label>
+                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none transition-all" value={year} onChange={e => setYear(e.target.value)} placeholder="Year" />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-2">Global Medium</label>
+                                <input className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white focus:border-white outline-none transition-all" value={medium} onChange={e => setMedium(e.target.value)} placeholder="Medium" />
+                            </div>
+                        </div>
+
+                        <label className="block border-2 border-dashed border-white/10 h-40 flex flex-col items-center justify-center cursor-pointer hover:bg-white/5 hover:border-white/20 rounded-2xl transition-all group">
+                            <input type="file" multiple hidden onChange={handleFileSelect} />
+                            <UploadCloud size={32} className="text-gray-600 group-hover:text-white transition-colors mb-3" />
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500 group-hover:text-white">Add Files</span>
+                        </label>
+                    </div>
+
+                    {/* Preview Side */}
+                    <div className="flex-1 p-8 overflow-y-auto bg-[#0A0A0A] custom-scrollbar">
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
+                            {stagedFiles.map((f, i) => (
+                                <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-white/5 bg-[#151515]">
+                                    <img src={f.preview} className="w-full h-full object-cover transition-transform group-hover:scale-110" />
+                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity p-4 flex flex-col justify-end">
+                                        <p className="text-[10px] font-mono text-white truncate">{f.title}</p>
+                                    </div>
+                                </div>
+                            ))}
+                            {stagedFiles.length === 0 && (
+                                <div className="col-span-full h-64 flex flex-col items-center justify-center text-gray-600">
+                                    <div className="w-16 h-16 rounded-full border border-white/5 flex items-center justify-center mb-4">
+                                        <ImageIcon size={32} strokeWidth={1} />
+                                    </div>
+                                    <p className="text-xs font-mono uppercase tracking-widest">Awaiting assets</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="p-6 md:p-8 border-t border-white/5 flex justify-end gap-6 bg-[#151515]">
+                    <button onClick={onClose} className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Discard</button>
+                    <button
+                        onClick={handleBatchUpload}
+                        disabled={uploading || stagedFiles.length === 0}
+                        className="bg-white text-black px-10 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl shadow-white/5 disabled:opacity-20"
+                    >
+                        {uploading ? 'Processing...' : `Upload ${stagedFiles.length} Assets`}
+                    </button>
                 </div>
             </div>
-            <div className="p-4 border-t flex justify-end gap-2"><button onClick={onClose} className="px-4 py-2 text-gray-500">Cancel</button><button onClick={handleBatchUpload} disabled={uploading} className="bg-black text-white px-6 py-2 rounded">Upload</button></div>
         </div>
     )
 }
+

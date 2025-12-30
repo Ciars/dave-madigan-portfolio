@@ -1,7 +1,23 @@
 import { motion } from 'framer-motion';
-import { bio, collections } from '../data/content';
+import { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+import { bio as staticBio, collections as staticCollections } from '../data/content';
 
 const About = () => {
+    const [bio, setBio] = useState(staticBio);
+    const [collections, setCollections] = useState(staticCollections);
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            const { data } = await supabase.from('site_content').select('about_bio, about_collections').single();
+            if (data) {
+                if (data.about_bio && data.about_bio.length > 0) setBio(data.about_bio);
+                if (data.about_collections && data.about_collections.length > 0) setCollections(data.about_collections);
+            }
+        };
+        fetchContent();
+    }, []);
+
     return (
         <section id="about" className="py-32 px-6 md:px-12 bg-[#050505]">
             <div className="container mx-auto">
@@ -37,6 +53,10 @@ const About = () => {
                                     <motion.li
                                         key={index}
                                         className="text-white text-lg font-medium flex items-center gap-3"
+                                        initial={{ opacity: 0, x: -10 }}
+                                        whileInView={{ opacity: 1, x: 0 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: 0.2 + (index * 0.05) }}
                                     >
                                         <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
                                         {item}

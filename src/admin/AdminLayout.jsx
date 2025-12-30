@@ -3,6 +3,7 @@ import { supabase } from '../supabaseClient';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
 import { LayoutDashboard, Image, Calendar, Users, LogOut, Menu, X, Settings, Globe, UserSquare } from 'lucide-react';
 import { Toaster } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AdminLayout() {
     const navigate = useNavigate();
@@ -58,44 +59,48 @@ export default function AdminLayout() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-[#FDFBF7] text-gray-900 font-sans selection:bg-black selection:text-white">
-            <Toaster position="top-right" />
+        <div className="flex min-h-screen bg-[#0A0A0A] text-white font-sans selection:bg-white selection:text-black">
+            <Toaster position="top-right" theme="dark" />
 
             {/* Mobile Header */}
-            <div className="lg:hidden fixed top-0 inset-x-0 bg-white border-b border-gray-100 z-50 px-4 py-3 flex items-center justify-between shadow-sm">
-                <span className="font-serif text-lg">Dave Madigan <span className="text-gray-400 font-sans text-xs uppercase tracking-widest ml-1">Admin</span></span>
+            <div className="lg:hidden fixed top-0 inset-x-0 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-white/5 z-50 px-6 py-4 flex items-center justify-between">
+                <span className="font-serif text-xl tracking-tight">Dave Madigan</span>
                 <button
                     onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                    className="p-2 hover:bg-gray-100 rounded-lg text-gray-600"
+                    className="p-2 hover:bg-white/5 rounded-full transition-colors text-white"
                 >
                     {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
             {/* Mobile Overlay */}
-            {isMobileMenuOpen && (
-                <div
-                    className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-sm"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                />
-            )}
+            <AnimatePresence>
+                {isMobileMenuOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-sm"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* Sidebar */}
             <aside className={`
-                fixed inset-y-0 left-0 bg-white border-r border-gray-100 flex flex-col z-50 w-64 transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-screen lg:inset-auto
-                ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}
+                fixed inset-y-0 left-0 bg-[#111111] border-r border-white/5 flex flex-col z-50 w-72 transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1) lg:translate-x-0 lg:static lg:h-screen lg:inset-auto
+                ${isMobileMenuOpen ? 'translate-x-0 shadow-2xl shadow-black/50' : '-translate-x-full'}
             `}>
-                <div className="p-8 hidden lg:block">
-                    <h1 className="font-serif text-2xl tracking-tight">Dave Madigan</h1>
-                    <p className="text-xs font-mono uppercase tracking-widest text-gray-400 mt-1">Admin Panel</p>
+                <div className="p-10 hidden lg:block">
+                    <h1 className="font-serif text-3xl tracking-tighter leading-none mb-1">Dave Madigan</h1>
+                    <p className="text-[10px] font-mono uppercase tracking-[0.3em] text-gray-500">Studio Management</p>
                 </div>
 
-                {/* Mobile Menu Title adjustments */}
-                <div className="p-6 lg:hidden mt-14">
-                    <p className="text-xs font-bold uppercase text-gray-400 tracking-wider">Navigation</p>
+                <div className="p-8 lg:hidden mt-20">
+                    <p className="text-[10px] font-bold uppercase text-gray-500 tracking-[0.2em]">Navigation</p>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
+                <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto">
                     {menuItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         const Icon = item.icon;
@@ -103,35 +108,39 @@ export default function AdminLayout() {
                             <Link
                                 key={item.path}
                                 to={item.path}
-                                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${isActive
-                                    ? 'bg-black text-white shadow-lg shadow-black/10'
-                                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                className={`flex items-center gap-4 px-6 py-4 text-sm font-medium rounded-xl transition-all duration-300 ${isActive
+                                    ? 'bg-white text-black shadow-xl shadow-white/5 scale-[1.02]'
+                                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
                                     }`}
                             >
-                                <Icon size={18} strokeWidth={isActive ? 2 : 1.5} />
+                                <Icon size={20} strokeWidth={isActive ? 2.5 : 1.5} />
                                 {item.label}
                             </Link>
                         );
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-100">
+                <div className="p-6 border-t border-white/5">
                     <button
                         onClick={handleLogout}
-                        className="flex items-center gap-3 w-full px-4 py-3 text-sm font-medium text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                        className="flex items-center gap-4 w-full px-6 py-4 text-sm font-medium text-red-500 rounded-xl hover:bg-red-500/10 transition-all group"
                     >
-                        <LogOut size={18} />
+                        <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
                         Sign Out
                     </button>
+                    <div className="mt-6 px-6">
+                        <p className="text-[9px] font-mono text-gray-700 uppercase tracking-widest">v1.2.0 • Visionary Platform</p>
+                    </div>
                 </div>
             </aside>
 
             {/* Main Content Area */}
-            <main className="flex-1 p-4 lg:p-12 pt-20 lg:pt-12 w-full max-w-[100vw] overflow-x-hidden">
-                <div className="max-w-5xl mx-auto">
+            <main className="flex-1 p-6 lg:p-14 pt-28 lg:pt-14 w-full max-w-[100vw] overflow-x-hidden overflow-y-auto">
+                <div className="max-w-6xl mx-auto">
                     <Outlet />
                 </div>
             </main>
         </div>
     );
 }
+

@@ -133,64 +133,64 @@ export default function UserManager() {
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-gray-300" size={32} /></div>;
 
     return (
-        <div className="space-y-8">
-            <div className="flex items-center justify-between">
+        <div className="space-y-12">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                 <div>
-                    <h2 className="text-3xl font-serif">Admin Users</h2>
-                    <p className="text-gray-500 text-sm">Manage admin panel access</p>
+                    <h2 className="text-4xl font-serif tracking-tight text-white mb-2">Admin Team</h2>
+                    <p className="text-gray-500 text-sm">Control access to your studio management platform.</p>
                 </div>
                 <button
                     onClick={() => setShowModal(true)}
-                    className="flex items-center gap-2 bg-black text-white px-6 py-3 rounded-xl font-medium shadow-lg hover:bg-zinc-800 hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    className="flex items-center gap-2 bg-white text-black px-8 py-3.5 rounded-2xl text-xs font-bold uppercase tracking-widest shadow-xl shadow-white/5 hover:bg-gray-200 hover:scale-[1.02] active:scale-[0.98] transition-all"
                 >
-                    <Plus size={20} /> Add User
+                    <Plus size={18} /> Add Member
                 </button>
             </div>
 
             {/* Users List */}
-            <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="bg-[#111111] rounded-3xl border border-white/5 shadow-2xl overflow-hidden">
                 <table className="w-full">
-                    <thead className="bg-gray-50 border-b border-gray-100">
+                    <thead className="bg-[#151515] border-b border-white/5 text-white">
                         <tr>
-                            <th className="text-left px-6 py-4 text-xs font-bold uppercase text-gray-500">Email</th>
-                            <th className="text-left px-6 py-4 text-xs font-bold uppercase text-gray-500">Status</th>
-                            <th className="text-left px-6 py-4 text-xs font-bold uppercase text-gray-500">Created</th>
-                            <th className="text-right px-6 py-4 text-xs font-bold uppercase text-gray-500">Actions</th>
+                            <th className="text-left px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-gray-500">Member</th>
+                            <th className="text-left px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-gray-500">Security State</th>
+                            <th className="text-left px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-gray-500">Joined</th>
+                            <th className="text-right px-8 py-5 text-[10px] font-bold uppercase tracking-widest text-gray-500">Actions</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100">
+                    <tbody className="divide-y divide-white/5">
                         {users.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                                <td className="px-6 py-4 font-medium">{user.email}</td>
-                                <td className="px-6 py-4">
+                            <tr key={user.id} className="hover:bg-white/5 transition-colors group">
+                                <td className="px-8 py-6 font-medium text-white">{user.email}</td>
+                                <td className="px-8 py-6">
                                     {user.must_reset_password ? (
-                                        <span className="inline-flex items-center gap-1 px-3 py-1 bg-amber-50 text-amber-700 text-xs font-medium rounded-full">
-                                            <Key size={12} /> Needs Password Reset
+                                        <span className="inline-flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 text-amber-500 text-[10px] font-bold uppercase tracking-widest rounded-full border border-amber-500/20">
+                                            <Key size={12} /> Pending Reset
                                         </span>
                                     ) : (
-                                        <span className="inline-flex items-center px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full">
-                                            Active
+                                        <span className="inline-flex items-center px-4 py-1.5 bg-white/5 text-gray-400 text-[10px] font-bold uppercase tracking-widest rounded-full border border-white/10">
+                                            Verified
                                         </span>
                                     )}
                                 </td>
-                                <td className="px-6 py-4 text-sm text-gray-500">
-                                    {new Date(user.created_at).toLocaleDateString()}
+                                <td className="px-8 py-6 text-sm text-gray-500 font-mono text-[11px]">
+                                    {new Date(user.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
                                 </td>
-                                <td className="px-6 py-4 text-right">
+                                <td className="px-8 py-6 text-right">
                                     <button
                                         onClick={() => handleDeleteUser(user.id, user.email)}
-                                        className="text-red-600 hover:text-red-800 transition-colors p-2"
-                                        title="Delete user"
+                                        className="text-gray-600 hover:text-red-500 transition-all p-3 hover:bg-red-500/10 rounded-full"
+                                        title="Revoke Access"
                                     >
-                                        <Trash2 size={18} />
+                                        <Trash2 size={20} />
                                     </button>
                                 </td>
                             </tr>
                         ))}
                         {users.length === 0 && (
                             <tr>
-                                <td colSpan={4} className="px-6 py-12 text-center text-gray-400">
-                                    No users yet. Add your first admin user.
+                                <td colSpan={4} className="px-8 py-20 text-center">
+                                    <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-gray-700">Awaiting membership...</p>
                                 </td>
                             </tr>
                         )}
@@ -200,69 +200,76 @@ export default function UserManager() {
 
             {/* Create User Modal */}
             {showModal && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setShowModal(false)}>
-                    <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 p-8" onClick={(e) => e.stopPropagation()}>
-                        <h3 className="text-2xl font-serif mb-6">Add Admin User</h3>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-6" onClick={() => setShowModal(false)}>
+                    <div className="bg-[#111111] md:rounded-[2.5rem] shadow-2xl max-w-lg w-full p-10 md:p-12 border border-white/5 animate-in zoom-in-95 duration-300" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-between items-center mb-10">
+                            <div>
+                                <h3 className="text-3xl font-serif text-white tracking-tight">Onboard Member</h3>
+                                <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1 text-left">Identity Management</p>
+                            </div>
+                            <button onClick={() => setShowModal(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all"><X size={20} /></button>
+                        </div>
 
-                        <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 flex gap-3">
-                            <AlertCircle className="text-amber-600 flex-shrink-0" size={20} />
-                            <p className="text-sm text-amber-800">
-                                You'll need to manually share the email and temporary password with the new user. They'll be forced to change it on first login.
+                        <div className="bg-amber-500/10 border border-amber-500/20 rounded-2xl p-6 mb-10 flex gap-4">
+                            <AlertCircle className="text-amber-500 flex-shrink-0" size={20} />
+                            <p className="text-xs text-amber-200/80 leading-relaxed text-left">
+                                Important: You must manually share these credentials. The member will be required to establish a permanent security key upon their first entry.
                             </p>
                         </div>
 
-                        <form onSubmit={handleCreateUser} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Email</label>
-                                <input
-                                    type="email"
-                                    value={newUserEmail}
-                                    onChange={(e) => setNewUserEmail(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black transition-colors"
-                                    placeholder="admin@example.com"
-                                    required
-                                />
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-2">Temporary Password</label>
-                                <div className="flex gap-2">
+                        <form onSubmit={handleCreateUser} className="space-y-8">
+                            <div className="space-y-6">
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Email Address</label>
                                     <input
-                                        type="text"
-                                        value={newUserPassword}
-                                        onChange={(e) => setNewUserPassword(e.target.value)}
-                                        className="flex-1 border border-gray-200 rounded-lg p-3 focus:outline-none focus:border-black transition-colors font-mono text-sm"
-                                        placeholder="Enter or generate"
+                                        type="email"
+                                        value={newUserEmail}
+                                        onChange={(e) => setNewUserEmail(e.target.value)}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                        placeholder="member@visionary.com"
                                         required
-                                        minLength={8}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={generatePassword}
-                                        className="px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium transition-colors"
-                                        title="Generate password"
-                                    >
-                                        <Key size={18} />
-                                    </button>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">Minimum 8 characters</p>
+
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Ephemeral Password</label>
+                                    <div className="flex gap-4">
+                                        <input
+                                            type="text"
+                                            value={newUserPassword}
+                                            onChange={(e) => setNewUserPassword(e.target.value)}
+                                            className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white font-mono text-sm placeholder-gray-700"
+                                            placeholder="Min 8 characters"
+                                            required
+                                            minLength={8}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={generatePassword}
+                                            className="px-5 py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl text-white transition-all group"
+                                            title="Generate secure key"
+                                        >
+                                            <Key size={20} className="group-active:rotate-12 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
 
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex flex-col sm:flex-row gap-4 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowModal(false)}
-                                    className="flex-1 px-6 py-3 border border-gray-200 rounded-lg font-medium hover:bg-gray-50 transition-colors"
+                                    className="px-8 py-4 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors order-2 sm:order-1"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
                                     disabled={creating}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-black text-white px-6 py-3 rounded-lg font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                                    className="flex-1 flex items-center justify-center gap-3 bg-white text-black px-10 py-5 rounded-3xl font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-20 order-1 sm:order-2 active:scale-[0.98] shadow-xl shadow-white/5"
                                 >
                                     {creating ? <Loader2 className="animate-spin" size={18} /> : <Plus size={18} />}
-                                    Create User
+                                    Establish Account
                                 </button>
                             </div>
                         </form>

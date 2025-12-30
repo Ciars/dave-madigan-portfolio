@@ -45,16 +45,20 @@ function MainSite() {
 
 // Placeholder for the Overview Dashboard
 const Overview = () => (
-    <div>
-        <h2 className="text-3xl font-serif mb-6">Welcome back, Dave.</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
-                <p className="text-sm text-gray-500 mb-1">Total Artworks</p>
-                <p className="text-3xl font-serif">24</p>
+    <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <h2 className="text-4xl font-serif mb-10 tracking-tight">Studio Overview</h2>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Managed Artworks</p>
+                <p className="text-4xl font-serif">24</p>
             </div>
-            <div className="p-6 bg-white border border-gray-100 rounded-xl shadow-sm">
-                <p className="text-sm text-gray-500 mb-1">Exhibitions</p>
-                <p className="text-3xl font-serif">12</p>
+            <div className="p-8 bg-[#111111] border border-white/5 rounded-3xl shadow-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Exhibitions History</p>
+                <p className="text-4xl font-serif">12</p>
+            </div>
+            <div className="p-8 bg-[#151515] border border-white/5 rounded-3xl shadow-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-3">Newsletter Sync</p>
+                <p className="text-4xl font-serif">84</p>
             </div>
         </div>
     </div>

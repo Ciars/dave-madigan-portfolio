@@ -69,33 +69,36 @@ export default function Settings() {
         setLoading(false);
     };
 
-    if (fetching) return <div className="p-8 text-center text-gray-400">Loading settings...</div>;
+    if (fetching) return <div className="p-12 text-center text-gray-500 font-mono text-[10px] uppercase tracking-widest">Loading configuration...</div>;
 
     return (
-        <div className="space-y-8 pb-12">
-            <h2 className="text-3xl font-serif">Settings</h2>
+        <div className="space-y-12 pb-24">
+            <div className="mb-12">
+                <h1 className="font-serif text-4xl tracking-tight text-white mb-2">Studio Settings</h1>
+                <p className="text-gray-500 text-sm">Fine-tune your platform's presence and security.</p>
+            </div>
 
             {/* Layout Configuration */}
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm max-w-2xl">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gray-50 rounded-lg">
-                        <Grid size={20} className="text-gray-500" />
+            <div className="bg-[#111111] p-10 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl max-w-2xl">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="p-3 bg-white/5 rounded-2xl">
+                        <Grid size={24} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="font-medium text-lg">Layout Configuration</h3>
-                        <p className="text-sm text-gray-500">Customize the site header and footer.</p>
+                        <h3 className="font-serif text-2xl text-white tracking-tight">Identity & Presence</h3>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Layout Configuration</p>
                     </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-10">
                     {/* Header */}
-                    <div className="space-y-3 pb-6 border-b border-gray-100">
-                        <h4 className="font-medium text-sm text-gray-900">Header</h4>
+                    <div className="space-y-4 pb-10 border-b border-white/5">
+                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Navigation Header</h4>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Site Title</label>
+                            <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-3">Public Site Title</label>
                             <input
                                 type="text"
-                                className="w-full bg-gray-50 border border-gray-200 p-2 rounded focus:outline-none focus:border-black transition-colors"
+                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:border-white outline-none transition-all text-white placeholder-gray-700"
                                 value={headerSettings.title || ''}
                                 onChange={(e) => setHeaderSettings({ ...headerSettings, title: e.target.value })}
                             />
@@ -103,79 +106,79 @@ export default function Settings() {
                     </div>
 
                     {/* Footer */}
-                    <div className="space-y-3">
-                        <h4 className="font-medium text-sm text-gray-900">Footer</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-8">
+                        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500">Footer Content</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Contact Email</label>
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-3">Contact Email</label>
                                 <input
                                     type="email"
-                                    className="w-full bg-gray-50 border border-gray-200 p-2 rounded focus:outline-none focus:border-black transition-colors"
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:border-white outline-none transition-all text-white placeholder-gray-700"
                                     value={footerSettings.email || ''}
                                     onChange={(e) => setFooterSettings({ ...footerSettings, email: e.target.value })}
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-medium text-gray-500 mb-1">Instagram URL</label>
+                                <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-3">Instagram Path</label>
                                 <input
                                     type="url"
-                                    className="w-full bg-gray-50 border border-gray-200 p-2 rounded focus:outline-none focus:border-black transition-colors"
+                                    className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:border-white outline-none transition-all text-white placeholder-gray-700"
                                     value={footerSettings.instagram_url || ''}
                                     onChange={(e) => setFooterSettings({ ...footerSettings, instagram_url: e.target.value })}
                                 />
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-medium text-gray-500 mb-1">Copyright Text</label>
+                            <label className="block text-[10px] font-bold text-gray-700 uppercase tracking-widest mb-3">Legal Attribution</label>
                             <input
                                 type="text"
-                                className="w-full bg-gray-50 border border-gray-200 p-2 rounded focus:outline-none focus:border-black transition-colors"
+                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl focus:border-white outline-none transition-all text-white placeholder-gray-700"
                                 value={footerSettings.copyright_text || ''}
                                 onChange={(e) => setFooterSettings({ ...footerSettings, copyright_text: e.target.value })}
                             />
                         </div>
-                        <div className="flex items-center gap-2 pt-2">
+                        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-2xl border border-white/10">
                             <input
                                 id="showSub"
                                 type="checkbox"
-                                className="w-4 h-4 rounded border-gray-300 text-black focus:ring-black"
+                                className="w-5 h-5 rounded-lg border-white/20 bg-transparent text-white focus:ring-offset-0 focus:ring-white"
                                 checked={footerSettings.show_subscribe ?? true}
                                 onChange={(e) => setFooterSettings({ ...footerSettings, show_subscribe: e.target.checked })}
                             />
-                            <label htmlFor="showSub" className="text-sm text-gray-700">Show specific Subscribe Form section</label>
+                            <label htmlFor="showSub" className="text-xs font-bold uppercase tracking-widest text-gray-400 cursor-pointer">Display Newsletter Subscription Section</label>
                         </div>
                     </div>
 
-                    <div className="pt-4">
+                    <div className="pt-6">
                         <button
                             onClick={handleSaveLayout}
                             disabled={loading}
-                            className="bg-black text-white px-6 py-2 rounded-lg font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50"
+                            className="bg-white text-black px-10 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-50 shadow-xl shadow-white/5"
                         >
-                            {loading ? 'Saving...' : 'Save Configuration'}
+                            {loading ? 'Processing...' : 'Save Configuration'}
                         </button>
                     </div>
                 </div>
             </div>
 
             {/* Password Reset */}
-            <div className="bg-white p-6 rounded-xl border border-gray-100 shadow-sm max-w-md">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="p-2 bg-gray-50 rounded-lg">
-                        <Lock size={20} className="text-gray-500" />
+            <div className="bg-[#151515] p-10 md:p-12 rounded-[2.5rem] border border-white/5 shadow-2xl max-w-md">
+                <div className="flex items-center gap-4 mb-10">
+                    <div className="p-3 bg-white/5 rounded-2xl">
+                        <Lock size={24} className="text-white" />
                     </div>
                     <div>
-                        <h3 className="font-medium text-lg">Update Password</h3>
-                        <p className="text-sm text-gray-500">Set a new password for your account.</p>
+                        <h3 className="font-serif text-2xl text-white tracking-tight">Access Control</h3>
+                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Update Password</p>
                     </div>
                 </div>
 
-                <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <form onSubmit={handleUpdatePassword} className="space-y-6">
                     <div>
                         <input
                             type="password"
-                            placeholder="New Password"
-                            className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                            placeholder="New Security Key"
+                            className="w-full bg-white/5 border border-white/10 p-5 rounded-2xl focus:border-white outline-none transition-all text-white placeholder-gray-700 font-mono text-sm"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             required
@@ -185,12 +188,12 @@ export default function Settings() {
                     <button
                         type="submit"
                         disabled={!password || loading}
-                        className="flex items-center justify-center gap-2 w-full bg-black text-white p-3 rounded-lg font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex items-center justify-center gap-3 w-full bg-transparent border border-white/10 text-white p-5 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-white/5 transition-all disabled:opacity-20 shadow-xl"
                     >
-                        {loading ? 'Updating...' : (
+                        {loading ? 'Processing...' : (
                             <>
                                 <Save size={18} />
-                                Update Password
+                                Refresh Credentials
                             </>
                         )}
                     </button>

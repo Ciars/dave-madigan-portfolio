@@ -25,54 +25,54 @@ export default function SubscriberManager() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="space-y-12">
+            <div className="flex justify-between items-center mb-12">
                 <div>
-                    <h1 className="font-serif text-3xl">Subscribers</h1>
-                    <p className="text-gray-500 mt-1 text-sm">Grow your audience.</p>
+                    <h1 className="font-serif text-4xl tracking-tight mb-2 text-white">Subscribers</h1>
+                    <p className="text-gray-500 text-sm">Grow your audience and sync with your newsletter.</p>
                 </div>
             </div>
 
             {/* Stats Card */}
-            <div className="bg-gradient-to-br from-black to-zinc-800 text-white p-8 rounded-2xl shadow-xl flex items-center justify-between">
+            <div className="bg-[#111111] border border-white/5 p-10 rounded-[2rem] shadow-2xl flex items-center justify-between group">
                 <div>
-                    <p className="text-zinc-400 text-sm font-medium uppercase tracking-widest mb-1">Total Audience</p>
-                    <p className="text-5xl font-serif">{String(subscribers.length).padStart(2, '0')}</p>
+                    <p className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">Total Audience</p>
+                    <p className="text-6xl font-serif text-white">{String(subscribers.length).padStart(2, '0')}</p>
                 </div>
-                <div className="h-16 w-16 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-md">
-                    <Users size={32} className="text-white" />
+                <div className="h-20 w-20 bg-white/5 rounded-full flex items-center justify-center backdrop-blur-md group-hover:scale-110 transition-transform duration-500">
+                    <Users size={32} className="text-white opacity-40" />
                 </div>
             </div>
 
             {/* Actions */}
-            <div className="border border-gray-100 bg-white rounded-xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="bg-[#151515] border border-white/5 rounded-3xl p-8 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div>
-                    <h3 className="font-medium text-lg">Newsletter List</h3>
-                    <p className="text-gray-500 text-sm">Copy all email addresses to your clipboard to send a mass update via your email client.</p>
+                    <h3 className="font-serif text-xl text-white mb-2">Newsletter Registry</h3>
+                    <p className="text-gray-500 text-sm max-w-md">Sync your subscriber list by copying all active email addresses to your clipboard.</p>
                 </div>
                 <button
                     onClick={copyAllEmails}
-                    className="flex items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-900 border border-gray-200 px-6 py-3 rounded-lg font-medium transition-colors"
+                    className="w-full md:w-auto flex items-center justify-center gap-3 bg-white text-black px-8 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all active:scale-95 shadow-xl shadow-white/5"
                 >
-                    {copied ? <Check size={18} className="text-green-600" /> : <Copy size={18} />}
-                    {copied ? 'Copied!' : 'Copy Addresses'}
+                    {copied ? <Check size={18} /> : <Copy size={18} />}
+                    {copied ? 'Copied' : 'Sync Addresses'}
                 </button>
             </div>
 
             {/* Recent List */}
-            <div className="bg-white border border-gray-100 rounded-xl overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-50 bg-gray-50/50">
-                    <h4 className="text-sm font-bold text-gray-400 uppercase tracking-widest">Recent Signups</h4>
+            <div className="bg-[#111111] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                <div className="px-8 py-5 border-b border-white/5 bg-[#151515]">
+                    <h4 className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.2em]">Recent Accessions</h4>
                 </div>
-                <ul className="divide-y divide-gray-50">
+                <ul className="divide-y divide-white/5">
                     {subscribers.map(sub => (
-                        <li key={sub.id} className="px-6 py-4 flex justify-between items-center text-sm">
-                            <span className="font-medium text-gray-900">{sub.email}</span>
-                            <span className="text-gray-400 font-mono text-xs">{new Date(sub.created_at).toLocaleDateString()}</span>
+                        <li key={sub.id} className="px-8 py-5 flex justify-between items-center text-sm group hover:bg-white/5 transition-colors">
+                            <span className="font-medium text-white group-hover:translate-x-1 transition-transform">{sub.email}</span>
+                            <span className="text-gray-600 font-mono text-[10px] uppercase tracking-tighter">{new Date(sub.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                         </li>
                     ))}
                     {subscribers.length === 0 && (
-                        <li className="px-6 py-8 text-center text-gray-400 text-sm italic">No subscribers yet.</li>
+                        <li className="px-8 py-12 text-center text-gray-600 text-[10px] font-mono uppercase tracking-widest italic">Awaiting audience...</li>
                     )}
                 </ul>
             </div>

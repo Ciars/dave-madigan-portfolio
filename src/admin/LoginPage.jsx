@@ -60,34 +60,32 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="flex justify-center items-center h-screen bg-[#FDFBF7]">
-            <Toaster position="top-center" />
-            <div className="w-full max-w-md p-8 md:p-12">
+        <div className="flex justify-center items-center min-h-screen bg-[#050505] text-white font-sans selection:bg-white selection:text-black p-6">
+            <Toaster position="top-center" theme="dark" />
+            <div className="w-full max-w-md">
                 <div className="text-center mb-12">
-                    <h1 className="font-serif text-3xl mb-2">Dave Madigan</h1>
-                    <p className="text-xs font-mono uppercase tracking-widest text-gray-400">Portfolio Admin</p>
+                    <h1 className="font-serif text-4xl tracking-tighter mb-2">Dave Madigan</h1>
+                    <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-gray-500">Studio Management</p>
                 </div>
 
-                <div className="bg-white p-8 md:p-10 rounded-2xl shadow-[0_2px_40px_-12px_rgba(0,0,0,0.1)] border border-gray-100">
-                    <h2 className="text-xl font-medium mb-2">Sign in</h2>
-                    <p className="mb-8 text-gray-500 text-sm font-light">Enter your email to receive a magic link.</p>
+                <div className="bg-[#111111] p-10 md:p-12 rounded-3xl shadow-2xl border border-white/5">
+                    <h2 className="text-2xl font-serif mb-2 tracking-tight">Sign in</h2>
+                    <p className="mb-10 text-gray-500 text-sm font-light">Enter your credentials to access the studio.</p>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div>
+                    <form onSubmit={handleLogin} className="space-y-6">
+                        <div className="space-y-4">
                             <input
-                                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-white transition-all text-sm"
                                 type="email"
-                                placeholder="Email"
+                                placeholder="Email address"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
-                        </div>
-                        <div>
                             <input
-                                className="w-full bg-gray-50 border border-gray-200 p-3 rounded-lg focus:outline-none focus:border-black focus:ring-1 focus:ring-black transition-all"
+                                className="w-full bg-white/5 border border-white/10 p-4 rounded-xl text-white placeholder-gray-600 focus:outline-none focus:border-white transition-all text-sm"
                                 type="password"
-                                placeholder="Password"
+                                placeholder="Security password"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 required
@@ -95,33 +93,34 @@ export default function LoginPage() {
                         </div>
                         <button
                             type="submit"
-                            className="w-full bg-black text-white p-3 rounded-lg font-medium hover:bg-zinc-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="w-full bg-white text-black p-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-50 disabled:cursor-not-allowed transform active:scale-[0.98]"
                             disabled={loading}
                         >
-                            {loading ? 'Signing in...' : 'Sign In with Password'}
+                            {loading ? 'Authenticating...' : 'Sign In'}
                         </button>
                     </form>
 
-                    <div className="mt-4 flex flex-col gap-4">
+                    <div className="mt-8 flex flex-col gap-6">
                         <div className="relative">
-                            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-gray-200"></span></div>
-                            <div className="relative flex justify-center text-xs uppercase"><span className="bg-white px-2 text-gray-500">Or</span></div>
+                            <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-white/5"></span></div>
+                            <div className="relative flex justify-center text-[10px] uppercase tracking-widest"><span className="bg-[#111111] px-4 text-gray-600">Alternative</span></div>
                         </div>
                         <button
                             onClick={handleMagicLink}
                             type="button"
-                            className="w-full bg-white border border-gray-200 text-black p-3 rounded-lg font-medium hover:bg-gray-50 transition-colors disabled:opacity-50"
+                            className="w-full bg-transparent border border-white/10 text-white p-4 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-white/5 transition-all disabled:opacity-50"
                             disabled={loading}
                         >
-                            Sign In with Magic Link
+                            Request Magic Link
                         </button>
                     </div>
                 </div>
 
-                <p className="text-center mt-8 text-xs text-gray-300">
-                    &copy; 2024 Dave Madigan
+                <p className="text-center mt-12 text-[10px] font-mono text-gray-700 uppercase tracking-widest opacity-50">
+                    &copy; {new Date().getFullYear()} Dave Madigan Studio • Visionary platform
                 </p>
             </div>
         </div>
     );
 }
+

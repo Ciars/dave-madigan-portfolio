@@ -95,11 +95,11 @@ export default function ExhibitionManager() {
     };
 
     return (
-        <div className="space-y-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="space-y-12">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6 mb-12">
                 <div>
-                    <h1 className="font-serif text-3xl">Exhibitions</h1>
-                    <p className="text-gray-500 mt-1 text-sm">Manage your upcoming and past shows.</p>
+                    <h1 className="font-serif text-4xl tracking-tight mb-2">Exhibitions</h1>
+                    <p className="text-gray-500 text-sm max-w-sm">Curate your professional history and upcoming gallery shows.</p>
                 </div>
                 <button
                     onClick={() => {
@@ -107,70 +107,79 @@ export default function ExhibitionManager() {
                         setFormData({ title: '', location: '', dates: '', year: new Date().getFullYear().toString(), link: '' });
                         setShowForm(true);
                     }}
-                    className="flex items-center gap-2 bg-black text-white px-5 py-2.5 rounded-full text-sm font-medium hover:bg-zinc-800 transition-colors shadow-lg shadow-black/10"
+                    className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all shadow-xl shadow-white/5 active:scale-95"
                 >
-                    <Plus size={18} /> Add Exhibition
+                    <Plus size={18} /> New Exhibition
                 </button>
             </div>
 
             {/* Edit/Add Form Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-                    <div className="bg-white p-8 rounded-2xl w-full max-w-lg shadow-2xl animate-in fade-in zoom-in duration-200">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="font-serif text-2xl">{isEditing ? 'Edit Exhibition' : 'New Exhibition'}</h2>
-                            <button onClick={() => setShowForm(false)} className="p-2 hover:bg-gray-100 rounded-full">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-[100] p-6">
+                    <div className="bg-[#111111] p-10 md:p-12 rounded-[2rem] w-full max-w-xl shadow-2xl border border-white/5 animate-in fade-in zoom-in-95 duration-300">
+                        <div className="flex justify-between items-center mb-10">
+                            <div>
+                                <h2 className="font-serif text-3xl tracking-tight">{isEditing ? 'Edit Exhibition' : 'Log Exhibition'}</h2>
+                                <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500 mt-1">Exhibition Registry</p>
+                            </div>
+                            <button onClick={() => setShowForm(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-full text-gray-500 hover:text-white transition-all">
                                 <X size={20} />
                             </button>
                         </div>
-                        <form onSubmit={handleSave} className="space-y-4">
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Title</label>
-                                <input
-                                    required
-                                    className="w-full border-b border-gray-200 py-2 focus:border-black outline-none transition-colors"
-                                    value={formData.title}
-                                    onChange={e => setFormData({ ...formData, title: e.target.value })}
-                                />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
+                        <form onSubmit={handleSave} className="space-y-8">
+                            <div className="space-y-6">
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Year</label>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Exhibition Title</label>
                                     <input
-                                        className="w-full border-b border-gray-200 py-2 focus:border-black outline-none transition-colors"
-                                        value={formData.year}
-                                        onChange={e => setFormData({ ...formData, year: e.target.value })}
+                                        required
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                        placeholder="Solo Exhibition: Visionary Landscapes"
+                                        value={formData.title}
+                                        onChange={e => setFormData({ ...formData, title: e.target.value })}
+                                    />
+                                </div>
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Year</label>
+                                        <input
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                            value={formData.year}
+                                            onChange={e => setFormData({ ...formData, year: e.target.value })}
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Dates</label>
+                                        <input
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                            placeholder="Oct - Dec"
+                                            value={formData.dates}
+                                            onChange={e => setFormData({ ...formData, dates: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Location / Gallery</label>
+                                    <input
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                        placeholder="The Royal Academy, London"
+                                        value={formData.location}
+                                        onChange={e => setFormData({ ...formData, location: e.target.value })}
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Dates</label>
+                                    <label className="block text-[10px] font-bold uppercase text-gray-500 tracking-widest mb-3">Reference URL (Optional)</label>
                                     <input
-                                        className="w-full border-b border-gray-200 py-2 focus:border-black outline-none transition-colors"
-                                        value={formData.dates}
-                                        onChange={e => setFormData({ ...formData, dates: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 focus:border-white outline-none transition-all text-white placeholder-gray-700"
+                                        placeholder="https://exhibition-link.com"
+                                        value={formData.link}
+                                        onChange={e => setFormData({ ...formData, link: e.target.value })}
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Location</label>
-                                <input
-                                    className="w-full border-b border-gray-200 py-2 focus:border-black outline-none transition-colors"
-                                    value={formData.location}
-                                    onChange={e => setFormData({ ...formData, location: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold uppercase text-gray-400 mb-1">Link URL</label>
-                                <input
-                                    className="w-full border-b border-gray-200 py-2 focus:border-black outline-none transition-colors"
-                                    value={formData.link}
-                                    onChange={e => setFormData({ ...formData, link: e.target.value })}
-                                />
-                            </div>
-                            <div className="pt-4 flex justify-end gap-2">
-                                <button type="button" onClick={() => setShowForm(false)} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900">Cancel</button>
-                                <button className="bg-black text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-zinc-800">
-                                    {isEditing ? 'Save Changes' : 'Create Exhibition'}
+                            <div className="pt-6 flex justify-end gap-6">
+                                <button type="button" onClick={() => setShowForm(false)} className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Discard</button>
+                                <button className="bg-white text-black px-10 py-4 rounded-2xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 shadow-xl shadow-white/5 transition-all">
+                                    {isEditing ? 'Save Changes' : 'Confirm Entry'}
                                 </button>
                             </div>
                         </form>
@@ -179,39 +188,43 @@ export default function ExhibitionManager() {
             )}
 
             {/* List View */}
-            <div className="grid gap-4">
+            <div className="grid gap-6">
                 {exhibitions.map(ex => (
-                    <div key={ex.id} className="group flex items-center justify-between p-6 bg-white border border-gray-100 rounded-xl hover:shadow-lg hover:border-gray-200 transition-all duration-300">
-                        <div className="space-y-1">
-                            <div className="flex items-baseline gap-3">
-                                <span className="font-mono text-sm text-gray-400">{ex.year}</span>
-                                <h3 className="font-medium text-lg">{ex.title}</h3>
+                    <div key={ex.id} className="group flex items-center justify-between p-8 bg-[#111111] border border-white/5 rounded-3xl hover:border-white/10 hover:bg-[#151515] transition-all duration-500 shadow-2xl shadow-black/20">
+                        <div className="space-y-3">
+                            <div className="flex items-baseline gap-4">
+                                <span className="font-mono text-xs tracking-tighter text-gray-600 group-hover:text-white transition-colors">{ex.year}</span>
+                                <h3 className="font-serif text-2xl tracking-tight text-white">{ex.title}</h3>
                             </div>
-                            <div className="flex items-center gap-4 text-sm text-gray-500">
-                                <div className="flex items-center gap-1"><MapPin size={14} /> {ex.location}</div>
-                                {ex.dates && <div className="flex items-center gap-1"><Calendar size={14} /> {ex.dates}</div>}
-                                {ex.link && <div className="flex items-center gap-1"><LinkIcon size={14} /> Link</div>}
+                            <div className="flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-gray-500">
+                                <div className="flex items-center gap-2"><MapPin size={14} className="text-gray-700" /> {ex.location}</div>
+                                {ex.dates && <div className="flex items-center gap-2"><Calendar size={14} className="text-gray-700" /> {ex.dates}</div>}
+                                {ex.link && <div className="flex items-center gap-2 text-white/40 group-hover:text-white transition-colors"><LinkIcon size={14} /> Ref Available</div>}
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-4 group-hover:translate-x-0">
                             <button
                                 onClick={() => startEdit(ex)}
-                                className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full"
+                                className="p-3 bg-white/5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all"
+                                title="Edit Record"
                             >
-                                <Edit2 size={18} />
+                                <Edit2 size={20} />
                             </button>
                             <button
                                 onClick={() => handleDelete(ex.id)}
-                                className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full"
+                                className="p-3 bg-red-500/5 text-gray-700 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"
+                                title="Delete Record"
                             >
-                                <Trash2 size={18} />
+                                <Trash2 size={20} />
                             </button>
                         </div>
                     </div>
                 ))}
                 {exhibitions.length === 0 && !loading && (
-                    <div className="text-center py-12 text-gray-400">No exhibitions found.</div>
+                    <div className="text-center py-32 rounded-3xl bg-white/5 border border-dashed border-white/10">
+                        <p className="text-[10px] font-mono uppercase tracking-[0.4em] text-gray-500">No records found</p>
+                    </div>
                 )}
             </div>
         </div>
