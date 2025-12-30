@@ -25,7 +25,7 @@ export default function AdminLayout() {
                     .from('user_profiles')
                     .select('must_reset_password')
                     .eq('id', session.user.id)
-                    .single();
+                    .maybeSingle();
 
                 if (!error && profile?.must_reset_password) {
                     navigate('/admin/force-reset-password');

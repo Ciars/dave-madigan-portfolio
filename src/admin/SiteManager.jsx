@@ -11,10 +11,55 @@ export default function SiteManager() {
     const [content, setContent] = useState({
         hero_title: '',
         hero_subtitle: '',
-        hero_image_url: ''
+        hero_image_url: '',
+        about_bio: [],
+        about_collections: []
     });
 
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [previewUrl, setPreviewUrl] = useState('');
     const [newCollectionItem, setNewCollectionItem] = useState('');
+
+    useEffect(() => {
+        fetchContent();
+    }, []);
+
+    const fetchContent = async () => {
+        try {
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('site_content')
+                .select('*')
+                .eq('id', 1)
+                .maybeSingle();
+
+            if (error) throw error;
+
+            if (data) {
+                // Ensure bio/collections are arrays if null
+                const safeData = {
+                    ...data,
+                    about_bio: data.about_bio || [],
+                    about_collections: data.about_collections || []
+                };
+                setContent(safeData);
+                if (data.hero_image_url) setPreviewUrl(data.hero_image_url);
+            }
+        } catch (error) {
+            console.error('Error fetching site content:', error);
+            // Don't toast on initial load failure to avoid spam, just let it show empty or retriable state
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleImageSelect = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            const file = e.target.files[0];
+            setSelectedImage(file);
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
     const handleAddCollection = () => {
         if (!newCollectionItem.trim()) return;
@@ -27,6 +72,60 @@ export default function SiteManager() {
         const updated = [...(content.about_collections || [])];
         updated.splice(index, 1);
         setContent({ ...content, about_collections: updated });
+    };
+
+    const handleSave = async (e) => {
+        e.preventDefault();
+        setSaving(true);
+        const toastId = toast.loading('Saving changes...');
+
+        try {
+            let joyImageUrl = content.hero_image_url;
+
+            // 1. Upload new image if selected
+            if (selectedImage) {
+                const fileExt = selectedImage.name.split('.').pop();
+                const fileName = `hero_${Date.now()}.${fileExt}`;
+                const filePath = `${fileName}`;
+
+                const { error: uploadError } = await supabase.storage
+                    .from('artworks')
+                    .upload(filePath, selectedImage);
+
+                if (uploadError) throw uploadError;
+
+                const { data: publicUrlData } = supabase.storage
+                    .from('artworks')
+                    .getPublicUrl(filePath);
+
+                joyImageUrl = publicUrlData.publicUrl;
+            }
+
+            // 2. Update Database
+            const { error: dbError } = await supabase
+                .from('site_content')
+                .update({
+                    hero_title: content.hero_title,
+                    hero_subtitle: content.hero_subtitle,
+                    hero_image_url: joyImageUrl,
+                    about_bio: content.about_bio,
+                    about_collections: content.about_collections,
+                    updated_at: new Date()
+                })
+                .eq('id', 1);
+
+            if (dbError) throw dbError;
+
+            toast.success('Site content updated!', { id: toastId });
+            setSelectedImage(null);
+            setContent(prev => ({ ...prev, hero_image_url: joyImageUrl }));
+
+        } catch (error) {
+            console.error('Error saving content:', error);
+            toast.error(`Save failed: ${error.message}`, { id: toastId });
+        } finally {
+            setSaving(false);
+        }
     };
 
     if (loading) return <div className="flex justify-center p-12"><Loader2 className="animate-spin text-gray-300" /></div>;
