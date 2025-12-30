@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { toast } from 'sonner';
-import { Users, Plus, Trash2, Key, Loader2, AlertCircle } from 'lucide-react';
+import { Users, Plus, Trash2, Key, Loader2, AlertCircle, X } from 'lucide-react';
 
 export default function UserManager() {
     const [users, setUsers] = useState([]);
