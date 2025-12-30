@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { LayoutDashboard, Image, Calendar, Users, LogOut, Menu, X, Settings, Globe } from 'lucide-react';
+import { LayoutDashboard, Image, Calendar, Users, LogOut, Menu, X, Settings, Globe, UserSquare } from 'lucide-react';
 import { Toaster } from 'sonner';
 
 export default function AdminLayout() {
@@ -14,7 +14,24 @@ export default function AdminLayout() {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                navigate('/admin');
+                navigate('/login');
+                return;
+            }
+
+            // Check if user needs to reset password
+            try {
+                const { data: profile, error } = await supabase
+                    .from('user_profiles')
+                    .select('must_reset_password')
+                    .eq('id', session.user.id)
+                    .single();
+
+                if (!error && profile?.must_reset_password) {
+                    navigate('/admin/force-reset-password');
+                }
+            } catch (error) {
+                // Profile might not exist yet for existing users, that's okay
+                console.log('No profile found, skipping password reset check');
             }
         };
         checkUser();
@@ -27,7 +44,7 @@ export default function AdminLayout() {
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
-        navigate('/admin');
+        navigate('/login');
     };
 
     const menuItems = [
@@ -36,6 +53,7 @@ export default function AdminLayout() {
         { path: '/admin/artworks', label: 'Artworks', icon: Image },
         { path: '/admin/exhibitions', label: 'Exhibitions', icon: Calendar },
         { path: '/admin/subscribers', label: 'Subscribers', icon: Users },
+        { path: '/admin/users', label: 'Admin Users', icon: UserSquare },
         { path: '/admin/settings', label: 'Settings', icon: Settings },
     ];
 

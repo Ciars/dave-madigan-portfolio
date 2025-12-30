@@ -19,6 +19,8 @@ export default function ArtworkManager() {
     const [newFolderName, setNewFolderName] = useState('');
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+    const [editingItem, setEditingItem] = useState(null); // { id, title, medium, year, image_url }
+
 
     useEffect(() => {
         fetchContent();
@@ -230,7 +232,49 @@ export default function ArtworkManager() {
         }
     };
 
+    const handleUpdateMetadata = async (e) => {
+        e.preventDefault();
+        const toastId = toast.loading('Updating metadata...');
+        try {
+            const { error } = await supabase
+                .from('artworks')
+                .update({
+                    title: editingItem.title,
+                    medium: editingItem.medium,
+                    year: editingItem.year,
+                    description: editingItem.description
+                })
+                .eq('id', editingItem.id);
+
+            if (error) throw error;
+
+            toast.success('Metadata updated', { id: toastId });
+            setEditingItem(null);
+            fetchContent();
+        } catch (error) {
+            console.error('Update failed:', error);
+            toast.error('Failed to update metadata', { id: toastId });
+        }
+    };
+
+    const handleUploadComplete = (uploadedIds) => {
+        setShowUpload(false);
+        fetchContent();
+
+        // If exactly one image was uploaded, open edit modal for it
+        if (uploadedIds.length === 1) {
+            const newId = uploadedIds[0];
+            setTimeout(async () => {
+                const { data } = await supabase.from('artworks').select('*').eq('id', newId).single();
+                if (data) {
+                    setEditingItem({ ...data, type: 'file' });
+                }
+            }, 500);
+        }
+    };
+
     return (
+
         <div className="space-y-6">
             {/* Header */}
             <div className="sticky top-0 bg-[#FDFBF7]/95 backdrop-blur z-40 pb-4 pt-2 -mt-2 border-b border-gray-100 flex items-center justify-between">
@@ -300,8 +344,18 @@ export default function ArtworkManager() {
                                         <p className="text-xs text-gray-400">{item.type === 'folder' ? 'Collection' : item.medium || 'Artwork'}</p>
                                     </div>
                                     <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        {item.type === 'file' && (
+                                            <button
+                                                onClick={() => setEditingItem(item)}
+                                                className="p-2 text-gray-400 hover:text-black hover:bg-gray-100 rounded"
+                                                title="Edit Metadata"
+                                            >
+                                                <ImageIcon size={16} />
+                                            </button>
+                                        )}
                                         <button onClick={() => handleDelete(item)} className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded"><Trash2 size={16} /></button>
                                     </div>
+
                                 </div>
                             </Reorder.Item>
                         ))}
@@ -333,12 +387,88 @@ export default function ArtworkManager() {
                         <UploadModal
                             onClose={() => setShowUpload(false)}
                             collectionId={currentCollection?.id}
-                            onSuccess={fetchContent}
+                            onSuccess={handleUploadComplete}
                         />
+
                     </div>
                 )
             }
+
+            {/* Edit Metadata Modal */}
+            {editingItem && (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+
+                        <div className="flex">
+                            <div className="w-1/3 bg-gray-50 p-6 border-r border-gray-100 flex items-center justify-center">
+                                <img src={editingItem.image_url} className="w-full h-auto rounded shadow-lg" alt="Preview" />
+                            </div>
+                            <div className="flex-1 p-8">
+                                <h3 className="text-2xl font-serif mb-6">Edit Artwork</h3>
+                                <form onSubmit={handleUpdateMetadata} className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Title</label>
+                                        <input
+                                            autoFocus
+                                            value={editingItem.title}
+                                            onChange={e => setEditingItem({ ...editingItem, title: e.target.value })}
+                                            className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
+                                            placeholder="Artwork Title"
+                                        />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Medium</label>
+                                            <input
+                                                value={editingItem.medium}
+                                                onChange={e => setEditingItem({ ...editingItem, medium: e.target.value })}
+                                                className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
+                                                placeholder="e.g. Oil on Canvas"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">Year</label>
+                                            <input
+                                                value={editingItem.year}
+                                                onChange={e => setEditingItem({ ...editingItem, year: e.target.value })}
+                                                className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors"
+                                                placeholder="2024"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-bold uppercase text-gray-400 mb-1">About</label>
+                                        <textarea
+                                            value={editingItem.description || ''}
+                                            onChange={e => setEditingItem({ ...editingItem, description: e.target.value })}
+                                            className="w-full border border-gray-200 rounded-lg p-3 outline-none focus:border-black transition-colors resize-none h-32"
+                                            placeholder="A paragraph or two explaining the artwork..."
+                                        />
+                                    </div>
+
+                                    <div className="flex justify-end gap-3 pt-6">
+                                        <button
+                                            type="button"
+                                            onClick={() => setEditingItem(null)}
+                                            className="px-6 py-2 border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="submit"
+                                            className="bg-black text-white px-8 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors"
+                                        >
+                                            Save Changes
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div >
+
     );
 }
 
@@ -401,8 +531,9 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
             }
 
             toast.success('Upload complete', { id: toastId });
-            onSuccess();
+            onSuccess(newIds);
             onClose();
+
         } catch (error) {
             console.error(error);
             toast.error('Upload failed', { id: toastId });

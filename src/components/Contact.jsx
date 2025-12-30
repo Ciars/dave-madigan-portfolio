@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { contact } from '../data/content';
-import Subscribe from './Subscribe';
 import { Send, Loader2, CheckCircle2 } from 'lucide-react';
 
 const Contact = ({ footerSettings = {} }) => {
@@ -9,176 +8,105 @@ const Contact = ({ footerSettings = {} }) => {
         email = contact.email,
         instagram_url,
         copyright_text = `© ${new Date().getFullYear()} Dave Madigan. All rights reserved.`,
-        show_subscribe = true
     } = footerSettings;
 
-    const [formState, setFormState] = useState({
-        name: '',
-        email: '',
-        subject: '',
-        message: ''
-    });
-    const [status, setStatus] = useState('idle'); // idle, loading, success, error
+    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const [status, setStatus] = useState('idle');
 
-    const handleChange = (e) => {
-        setFormState({ ...formState, [e.target.name]: e.target.value });
-        if (status === 'error') setStatus('idle');
-    };
+    const handleChange = (e) => setFormState({ ...formState, [e.target.name]: e.target.value });
 
     const handleSubmit = (e) => {
         e.preventDefault();
-
-        // Validation
-        if (!formState.name || !formState.email || !formState.message) {
-            setStatus('error');
-            return;
-        }
-
         setStatus('loading');
-
-        // Simulate network delay for UX then open mailto
         setTimeout(() => {
-            const subject = formState.subject ? `Portfolio Enquiry: ${formState.subject}` : `Portfolio Enquiry from ${formState.name}`;
-            const body = `${formState.message}\n\n--------------------------------\nFrom: ${formState.name}\nEmail: ${formState.email}`;
-
-            window.location.href = `mailto:dave.madigan@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
+            const body = `${formState.message}\n\nFrom: ${formState.name} (${formState.email})`;
+            window.location.href = `mailto:${email}?subject=Inquiry&body=${encodeURIComponent(body)}`;
             setStatus('success');
-            setFormState({ name: '', email: '', subject: '', message: '' });
-
-            // Reset success message after 5s
-            setTimeout(() => setStatus('idle'), 5000);
+            setFormState({ name: '', email: '', message: '' });
         }, 800);
     };
 
     return (
-        <footer className="bg-black text-white py-24 px-6 text-center border-t border-white/10">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="max-w-4xl mx-auto space-y-16"
-            >
-                {show_subscribe && <Subscribe />}
+        <footer id="contact" className="bg-[#050505] py-32 px-6 border-t border-white/5">
+            <div className="container mx-auto">
+                <div className="grid lg:grid-cols-12 gap-20">
 
-                <div className="grid md:grid-cols-2 gap-16 items-start text-left">
-                    {/* Left: Contact Info */}
-                    <div className="space-y-12">
-                        <div>
-                            <h2 className="text-3xl font-serif mb-6">Get in Touch</h2>
-                            <p className="text-gray-400 leading-relaxed">
-                                I am always open to discussing new projects, creative ideas or opportunities to be part of your visions.
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Email</p>
-                            <a href={`mailto:${email}`} className="text-xl md:text-2xl hover:text-gray-300 transition-colors">
-                                {email}
-                            </a>
-                        </div>
-
-                        {contact.studio && (
+                    <div className="lg:col-span-5">
+                        <span className="section-label">Contact</span>
+                        <h2 className="text-5xl md:text-7xl font-sans font-bold tracking-tighter text-white mb-10">
+                            Get in Touch
+                        </h2>
+                        <div className="space-y-12">
                             <div>
-                                <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">Studio</p>
-                                <p className="text-gray-400 whitespace-pre-line">{contact.studio}</p>
-                            </div>
-                        )}
-
-                        {instagram_url && (
-                            <div>
-                                <a
-                                    href={instagram_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-sm font-mono uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
-                                >
-                                    Instagram
+                                <p className="text-gray-400 uppercase text-[11px] tracking-widest font-bold mb-4">Direct Email</p>
+                                <a href={`mailto:${email}`} className="text-3xl font-serif text-white hover:underline decoration-white/20 underline-offset-8 transition-all">
+                                    {email}
                                 </a>
                             </div>
-                        )}
+                            {instagram_url && (
+                                <div>
+                                    <p className="text-gray-400 uppercase text-[11px] tracking-widest font-bold mb-4">Social</p>
+                                    <a href={instagram_url} target="_blank" rel="noopener noreferrer" className="text-xl text-white hover:text-gray-300 transition-colors">
+                                        Instagram — @dmadigan
+                                    </a>
+                                </div>
+                            )}
+                            <p className="text-gray-600 font-mono text-xs pt-12">{copyright_text}</p>
+                        </div>
                     </div>
 
-                    {/* Right: Form */}
-                    <form onSubmit={handleSubmit} className="space-y-6 bg-white/5 p-8 rounded-2xl border border-white/5">
-                        <div className="space-y-4">
-                            <div>
-                                <label className="sr-only">Name</label>
-                                <input
-                                    type="text"
-                                    name="name"
-                                    placeholder="Name"
-                                    value={formState.name}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
-                                    required
-                                />
+                    <div className="lg:col-span-7">
+                        <form onSubmit={handleSubmit} className="space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                <div>
+                                    <label className="section-label">Full Name</label>
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value={formState.name}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b-2 border-white/10 py-4 text-white text-xl focus:outline-none focus:border-white transition-colors placeholder-gray-800"
+                                        required
+                                        placeholder="Your name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="section-label">Email Address</label>
+                                    <input
+                                        type="email"
+                                        name="email"
+                                        value={formState.email}
+                                        onChange={handleChange}
+                                        className="w-full bg-transparent border-b-2 border-white/10 py-4 text-white text-xl focus:outline-none focus:border-white transition-colors placeholder-gray-800"
+                                        required
+                                        placeholder="hello@example.com"
+                                    />
+                                </div>
                             </div>
                             <div>
-                                <label className="sr-only">Email</label>
-                                <input
-                                    type="email"
-                                    name="email"
-                                    placeholder="Email"
-                                    value={formState.email}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
-                                    required
-                                />
-                            </div>
-                            <div>
-                                <label className="sr-only">Subject</label>
-                                <input
-                                    type="text"
-                                    name="subject"
-                                    placeholder="Subject (Optional)"
-                                    value={formState.subject}
-                                    onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors"
-                                />
-                            </div>
-                            <div>
-                                <label className="sr-only">Message</label>
+                                <label className="section-label">Message</label>
                                 <textarea
                                     name="message"
-                                    rows="4"
-                                    placeholder="Message"
+                                    rows="5"
                                     value={formState.message}
                                     onChange={handleChange}
-                                    className="w-full bg-transparent border-b border-white/20 py-3 text-white placeholder-gray-500 focus:outline-none focus:border-white transition-colors resize-none"
+                                    className="w-full bg-transparent border-b-2 border-white/10 py-4 text-white text-xl focus:outline-none focus:border-white transition-colors resize-none placeholder-gray-800"
                                     required
+                                    placeholder="Tell me about your vision"
                                 />
                             </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={status === 'loading' || status === 'success'}
-                            className={`w-full py-4 px-6 rounded-lg font-medium flex items-center justify-center gap-2 transition-all duration-300 ${status === 'success' ? 'bg-green-500 text-white' : 'bg-white text-black hover:bg-gray-200'
-                                }`}
-                        >
-                            {status === 'loading' ? (
-                                <Loader2 className="animate-spin" size={20} />
-                            ) : status === 'success' ? (
-                                <>
-                                    <CheckCircle2 size={20} /> Opened Email Client
-                                </>
-                            ) : (
-                                <>
-                                    Send Message <Send size={18} />
-                                </>
-                            )}
-                        </button>
-                        {status === 'error' && (
-                            <p className="text-red-400 text-sm text-center">Please fill in all required fields.</p>
-                        )}
-                    </form>
+                            <button
+                                type="submit"
+                                disabled={status === 'loading'}
+                                className="px-16 py-6 bg-white text-black font-bold uppercase text-xs tracking-widest rounded-full hover:bg-gray-200 transition-all flex items-center gap-4"
+                            >
+                                {status === 'loading' ? <Loader2 className="animate-spin" /> : status === 'success' ? <CheckCircle2 /> : <Send size={18} />}
+                                {status === 'loading' ? 'Sending' : status === 'success' ? 'Email Client Opened' : 'Send Message'}
+                            </button>
+                        </form>
+                    </div>
                 </div>
-
-                <div className="pt-12 text-xs text-gray-600 border-t border-white/10">
-                    {copyright_text}
-                </div>
-            </motion.div>
+            </div>
         </footer>
     );
 };

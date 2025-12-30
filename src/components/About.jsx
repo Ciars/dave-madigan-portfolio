@@ -3,57 +3,48 @@ import { bio, collections } from '../data/content';
 
 const About = () => {
     return (
-        <section className="py-24 px-6 md:px-12 lg:px-24 max-w-7xl mx-auto">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                {/* Bio Text */}
-                <div className="lg:col-span-7 space-y-8">
-                    <motion.h2
-                        initial={{ opacity: 0, x: -20 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true }}
-                        className="text-3xl font-serif mb-8 text-gray-500"
-                    >
-                        About
-                    </motion.h2>
+        <section id="about" className="py-32 px-6 md:px-12 bg-[#050505]">
+            <div className="container mx-auto">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-                    {bio.map((paragraph, index) => (
-                        <motion.p
-                            key={index}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.1 }}
-                            className="text-lg md:text-xl leading-relaxed font-light text-gray-300"
-                        >
-                            {paragraph}
-                        </motion.p>
-                    ))}
-                </div>
+                    <div className="lg:col-span-12">
+                        <span className="section-label">Artist Bio</span>
+                        <h2 className="text-5xl md:text-7xl font-sans font-bold tracking-tighter text-white mb-16">
+                            Dave Madigan
+                        </h2>
+                    </div>
 
-                {/* Collections / Side Info */}
-                <div className="lg:col-span-4 lg:col-start-9 mt-12 lg:mt-0 border-l border-white/10 pl-8">
-                    <motion.h3
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        viewport={{ once: true }}
-                        className="text-sm uppercase tracking-widest text-gray-500 mb-6"
-                    >
-                        Selected Collections
-                    </motion.h3>
-                    <ul className="space-y-4">
-                        {collections.map((item, index) => (
-                            <motion.li
+                    <div className="lg:col-span-8 space-y-10">
+                        {bio.map((paragraph, index) => (
+                            <motion.p
                                 key={index}
-                                initial={{ opacity: 0, x: 10 }}
-                                whileInView={{ opacity: 1, x: 0 }}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: true }}
-                                transition={{ delay: 0.2 + (index * 0.05) }}
-                                className="text-gray-400 font-light text-sm"
+                                transition={{ delay: index * 0.1 }}
+                                className="text-xl md:text-2xl leading-relaxed text-gray-200 font-serif"
                             >
-                                {item}
-                            </motion.li>
+                                {paragraph}
+                            </motion.p>
                         ))}
-                    </ul>
+                    </div>
+
+                    <div className="lg:col-span-4 mt-8 lg:mt-0">
+                        <div className="bg-[#0f0f0f] border border-white/5 rounded-2xl p-10">
+                            <h3 className="text-sm uppercase tracking-widest text-gray-400 mb-8 border-b border-white/10 pb-4 font-bold">Collections</h3>
+                            <ul className="space-y-6">
+                                {collections.map((item, index) => (
+                                    <motion.li
+                                        key={index}
+                                        className="text-white text-lg font-medium flex items-center gap-3"
+                                    >
+                                        <span className="w-1.5 h-1.5 bg-white rounded-full"></span>
+                                        {item}
+                                    </motion.li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>

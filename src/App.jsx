@@ -14,6 +14,8 @@ import ExhibitionManager from './admin/ExhibitionManager';
 import SubscriberManager from './admin/SubscriberManager';
 import Settings from './admin/Settings';
 import SiteManager from './admin/SiteManager';
+import UserManager from './admin/UserManager';
+import ForcePasswordReset from './admin/ForcePasswordReset';
 
 function MainSite() {
     const [config, setConfig] = useState(null);
@@ -30,7 +32,7 @@ function MainSite() {
     const footer = config?.footer_settings || {};
 
     return (
-        <main className="bg-[#050505] min-h-screen text-[#e5e5e5] selection:bg-white selection:text-black">
+        <main className="min-h-screen selection:bg-white selection:text-black bg-[#050505]">
             <Navigation title={header.title} />
             <Hero />
             <WorkGrid />
@@ -68,6 +70,9 @@ function App() {
                 {/* Auth */}
                 <Route path="/login" element={<LoginPage />} />
 
+                {/* Force Password Reset (outside AdminLayout) */}
+                <Route path="/admin/force-reset-password" element={<ForcePasswordReset onComplete={() => window.location.href = '/admin'} />} />
+
                 {/* Secure Admin Area */}
                 <Route path="/admin" element={<AdminLayout />}>
                     <Route index element={<Overview />} />
@@ -76,6 +81,7 @@ function App() {
                     <Route path="artworks" element={<ArtworkManager />} />
                     <Route path="exhibitions" element={<ExhibitionManager />} />
                     <Route path="subscribers" element={<SubscriberManager />} />
+                    <Route path="users" element={<UserManager />} />
                     <Route path="settings" element={<Settings />} />
                 </Route>
             </Routes>

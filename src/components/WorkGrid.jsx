@@ -1,204 +1,222 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, useScroll, useTransform, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useArtworks } from '../hooks/useContent';
-import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
-
-// Helper to chunk array into n columns
-const chunkArray = (array, numCols) => {
-    const cols = Array.from({ length: numCols }, () => []);
-    array.forEach((item, i) => {
-        cols[i % numCols].push(item);
-    });
-    return cols;
-};
+import { X, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 
 const WorkGrid = () => {
-    const { artworks: galleryImages, loading } = useArtworks();
+    const { artworks, loading } = useArtworks();
     const [selectedId, setSelectedId] = useState(null);
-    const containerRef = useRef(null);
+    const [direction, setDirection] = useState(0); // -1 for left, 1 for right
 
-    // Parallax Setup
-    const { scrollYProgress } = useScroll({
-        target: containerRef,
-        offset: ["start end", "end start"]
-    });
+    const selectedImage = artworks.find(img => img.id === selectedId);
+    const currentIndex = artworks.findIndex(img => img.id === selectedId);
 
-    // Create different velocities for columns
-    const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
-    const y2 = useTransform(scrollYProgress, [0, 1], [0, 150]); // Middle column moves opposite/slower
-    const y3 = useTransform(scrollYProgress, [0, 1], [0, -50]);
+    const navigate = useCallback((newDirection) => {
+        if (currentIndex === -1) return;
+        setDirection(newDirection);
+        let newIndex = currentIndex + newDirection;
+        if (newIndex < 0) newIndex = artworks.length - 1;
+        if (newIndex >= artworks.length) newIndex = 0;
+        setSelectedId(artworks[newIndex].id);
+    }, [currentIndex, artworks]);
 
-    const transforms = [y1, y2, y3];
-
-    // Keyboard Navigation
+    // Keyboard Controls
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (!selectedId) return;
-            if (e.key === 'Escape') setSelectedId(null);
+
             if (e.key === 'ArrowLeft') navigate(-1);
             if (e.key === 'ArrowRight') navigate(1);
+            if (e.key === 'Escape') setSelectedId(null);
         };
+
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [selectedId]);
+    }, [selectedId, navigate]);
 
-    if (loading) return <div className="h-screen bg-[#050505]" />;
-
-    // Split images into 3 columns
-    const columns = chunkArray(galleryImages, 3);
-
-    const selectedImage = galleryImages.find(img => img.id === selectedId);
-    const currentIndex = galleryImages.findIndex(img => img.id === selectedId);
-
-    const navigate = (direction) => {
-        if (currentIndex === -1) return;
-        let newIndex = currentIndex + direction;
-        if (newIndex < 0) newIndex = galleryImages.length - 1;
-        if (newIndex >= galleryImages.length) newIndex = 0;
-        setSelectedId(galleryImages[newIndex].id);
+    // Animation Variants
+    const variants = {
+        enter: (d) => ({
+            x: d > 0 ? 100 : -100,
+            opacity: 0,
+            scale: 0.95
+        }),
+        center: {
+            zIndex: 1,
+            x: 0,
+            opacity: 1,
+            scale: 1
+        },
+        exit: (d) => ({
+            zIndex: 0,
+            x: d > 0 ? -100 : 100,
+            opacity: 0,
+            scale: 1.05
+        })
     };
 
+    const textVariants = {
+        enter: { y: 20, opacity: 0 },
+        center: { y: 0, opacity: 1 },
+        exit: { y: -20, opacity: 0 }
+    };
+
+    if (loading) return <div className="h-96 flex items-center justify-center font-mono text-xs uppercase tracking-widest text-white">Loading Archive...</div>;
+
     return (
-        <section ref={containerRef} id="work" className="relative min-h-screen bg-[#050505] overflow-hidden py-32 px-4 md:px-12">
+        <section id="work" className="py-32 px-6 md:px-12 bg-[#050505]">
+            <div className="container mx-auto">
+                <div className="mb-20">
+                    <span className="section-label">Gallery</span>
+                    <h2 className="text-5xl md:text-7xl font-sans font-bold tracking-tighter text-white">
+                        Selected Works
+                    </h2>
+                </div>
 
-            {/* Header */}
-            <div className="container mx-auto mb-24 flex items-end justify-between border-b border-white/10 pb-6 relative z-10">
-                <h2 className="text-4xl md:text-7xl font-serif text-white tracking-tighter">
-                    Selected <span className="text-gray-600 italic">Works</span>
-                </h2>
-                <span className="font-mono text-xs text-gray-500 uppercase tracking-widest hidden md:block">
-                    Archive 2024 — 2025
-                </span>
-            </div>
-
-            {/* Kinetic Grid */}
-            <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10">
-                {columns.map((colImages, colIndex) => (
-                    <motion.div
-                        key={colIndex}
-                        style={{ y: transforms[colIndex % 3] }}
-                        className="flex flex-col gap-16"
-                    >
-                        {colImages.map((image) => (
-                            <WorkItem
-                                key={image.id}
-                                image={image}
-                                onClick={() => setSelectedId(image.id)}
-                            />
-                        ))}
-                    </motion.div>
-                ))}
-            </div>
-
-            {/* Seamless Expansion Detail View */}
-            <AnimatePresence>
-                {selectedId && selectedImage && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center">
-
-                        {/* Backdrop */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
+                    {artworks.map((image, index) => (
                         <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="absolute inset-0 bg-[#050505]/95 backdrop-blur-xl"
-                            onClick={() => setSelectedId(null)}
-                        />
-
-                        {/* Controls */}
-                        <div className="absolute top-0 right-0 p-8 z-[110] flex gap-4">
-                            <button onClick={() => setSelectedId(null)} className="text-white hover:text-red-500 transition-colors">
-                                <X size={32} />
-                            </button>
-                        </div>
-
-                        {/* Arrows */}
-                        <button
-                            onClick={(e) => { e.stopPropagation(); navigate(-1); }}
-                            className="absolute left-4 md:left-8 p-4 text-white/50 hover:text-white transition-colors z-[110]"
+                            key={image.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: index * 0.05 }}
+                            className="group cursor-pointer"
+                            onClick={() => {
+                                setDirection(0);
+                                setSelectedId(image.id);
+                            }}
                         >
-                            <ChevronLeft size={48} />
-                        </button>
-                        <button
-                            onClick={(e) => { e.stopPropagation(); navigate(1); }}
-                            className="absolute right-4 md:right-8 p-4 text-white/50 hover:text-white transition-colors z-[110]"
-                        >
-                            <ChevronRight size={48} />
-                        </button>
-
-                        {/* Content Container */}
-                        <div className="relative z-[105] w-full h-full p-4 md:p-12 flex flex-col md:flex-row gap-12 items-center justify-center pointer-events-none">
-
-                            {/* Image - Shared Layout ID */}
-                            <motion.div
-                                layoutId={`image-container-${selectedId}`}
-                                className="relative w-full md:w-auto max-w-5xl pointer-events-auto"
-                                onClick={(e) => e.stopPropagation()}
-                            >
-                                <motion.img
-                                    layoutId={`image-${selectedId}`}
-                                    src={selectedImage.src}
-                                    alt={selectedImage.title}
-                                    className="max-h-[70vh] md:max-h-[85vh] w-auto object-contain shadow-2xl"
+                            <div className="relative aspect-[4/5] bg-[#0a0a0a] rounded-2xl overflow-hidden mb-8 border border-white/10">
+                                <img
+                                    src={image.src}
+                                    alt={image.title}
+                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
                                 />
-                            </motion.div>
-
-                            {/* Info - Slides In */}
-                            <motion.div
-                                initial={{ opacity: 0, x: 50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 20 }}
-                                transition={{ delay: 0.2 }}
-                                className="pointer-events-auto text-left"
-                            >
-                                <h3 className="text-4xl md:text-6xl font-serif text-white mb-4 leading-none">
-                                    {selectedImage.title}
-                                </h3>
-                                <div className="flex flex-col gap-2 font-mono text-xs uppercase tracking-widest text-gray-400">
-                                    <span>{selectedImage.medium}</span>
-                                    <span>{selectedImage.year}</span>
-                                    <span className="text-red-500 mt-4">Available</span>
+                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-2 border-white/20 rounded-2xl">
+                                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
+                                        <Plus size={24} className="text-black" />
+                                    </div>
                                 </div>
-                            </motion.div>
-                        </div>
-
-                    </div>
-                )}
-            </AnimatePresence>
-
-        </section>
-    );
-};
-
-// Isolated Work Item for cleaner code & animations
-const WorkItem = ({ image, onClick }) => {
-    return (
-        <motion.div
-            layoutId={`image-container-${image.id}`}
-            className="group relative cursor-pointer"
-            onClick={onClick}
-            whileHover={{ scale: 0.98 }}
-            transition={{ duration: 0.5 }}
-        >
-            {/* Image Wrapper */}
-            <div className="relative overflow-hidden bg-gray-900">
-                <motion.img
-                    layoutId={`image-${image.id}`}
-                    src={image.src}
-                    alt={image.title}
-                    className="w-full h-auto object-cover opacity-80 group-hover:opacity-100 grayscale group-hover:grayscale-0 transition-all duration-700 ease-out"
-                />
-
-                {/* Glitch/Color overlays */}
-                <div className="absolute inset-0 bg-red-900/0 group-hover:bg-red-900/20 mix-blend-overlay transition-colors duration-300" />
-
-                {/* Chromatic abberation psuedo-element manually implemented via separate layers or CSS - keeping simple for now with overlay */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-100 pointer-events-none mix-blend-screen">
-                    {/* Fake glitch flash via CSS could go here, for now using blend modes */}
+                            </div>
+                            <div className="flex justify-between items-start pr-4">
+                                <div>
+                                    <h3 className="text-2xl font-bold tracking-tight text-white mb-2">{image.title}</h3>
+                                    <p className="text-xs uppercase tracking-widest text-gray-400 font-mono font-bold">{image.medium || 'Oil on Canvas'}</p>
+                                </div>
+                                <span className="text-2xl font-serif italic text-gray-800 font-bold">{image.year || '2024'}</span>
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
             </div>
 
-            {/* Meta removed for pure grid vision */}
-        </motion.div>
+            <AnimatePresence>
+                {selectedId && selectedImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] flex items-center justify-center overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-black/98 backdrop-blur-[80px]" onClick={() => setSelectedId(null)} />
+
+                        <div className="relative z-10 w-full h-full flex flex-col p-6 md:p-10">
+
+                            {/* Absolute Close Button - Frees up vertical space */}
+                            <motion.button
+                                onClick={() => setSelectedId(null)}
+                                className="absolute top-6 right-6 md:top-10 md:right-10 p-4 text-white/50 hover:text-white hover:rotate-90 transition-all bg-white/5 hover:bg-white/10 rounded-full z-[100]"
+                                aria-label="Close modal"
+                            >
+                                <X size={28} />
+                            </motion.button>
+
+                            {/* Main Display - Max 100% Height Utilization */}
+                            <div className="flex-1 flex flex-col lg:flex-row gap-12 lg:gap-20 items-center justify-center min-h-0 pt-4 md:pt-0">
+
+                                {/* Artwork Section - Max Height Available */}
+                                <div className="flex-1 w-full h-full flex items-center justify-center min-h-0 relative">
+                                    <AnimatePresence initial={false} custom={direction} mode="popLayout">
+                                        <motion.div
+                                            key={selectedId}
+                                            custom={direction}
+                                            variants={variants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            transition={{
+                                                x: { type: "spring", stiffness: 220, damping: 28 },
+                                                opacity: { duration: 0.4 },
+                                                scale: { duration: 0.5 }
+                                            }}
+                                            className="w-full h-full flex items-center justify-center"
+                                        >
+                                            <img
+                                                src={selectedImage.src}
+                                                alt={selectedImage.title}
+                                                className="max-w-full max-h-full object-contain shadow-[0_0_150px_rgba(0,0,0,0.9)] border border-white/5"
+                                            />
+                                        </motion.div>
+                                    </AnimatePresence>
+                                </div>
+
+                                {/* Details Panel */}
+                                <div className="w-full lg:w-[320px] shrink-0 flex flex-col gap-10 text-center lg:text-left pb-4 md:pb-0">
+                                    <AnimatePresence initial={false} mode="wait">
+                                        <motion.div
+                                            key={selectedId}
+                                            variants={textVariants}
+                                            initial="enter"
+                                            animate="center"
+                                            exit="exit"
+                                            transition={{ duration: 0.4, ease: "circOut" }}
+                                            className="space-y-8"
+                                        >
+                                            <div>
+                                                <span className="section-label mb-6">Archive Record</span>
+                                                <h3 className="text-4xl md:text-5xl lg:text-6xl font-serif tracking-tighter text-white leading-[0.8] mb-4">
+                                                    {selectedImage.title}
+                                                </h3>
+                                            </div>
+
+                                            <div className="space-y-8 font-mono text-[10px] tracking-[0.3em] uppercase text-gray-500">
+                                                <div className="flex flex-col border-b border-white/5 pb-6 gap-3">
+                                                    <span className="opacity-40">Medium</span>
+                                                    <span className="text-white font-medium text-xs tracking-normal normal-case">{selectedImage.medium || 'Oil on Canvas'}</span>
+                                                </div>
+                                                <div className="flex flex-col border-b border-white/5 pb-6 gap-3">
+                                                    <span className="opacity-40">Timeline</span>
+                                                    <span className="text-white font-medium text-xs tracking-normal">{selectedImage.year || '2024'}</span>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    </AnimatePresence>
+
+                                    {/* Navigation */}
+                                    <div className="flex justify-center lg:justify-start gap-8 pt-2">
+                                        <button
+                                            onClick={() => navigate(-1)}
+                                            className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all group shadow-xl"
+                                            aria-label="Previous artwork"
+                                        >
+                                            <ChevronLeft size={24} className="group-hover:-translate-x-1 transition-transform" />
+                                        </button>
+                                        <button
+                                            onClick={() => navigate(1)}
+                                            className="w-16 h-16 bg-white/5 border border-white/10 rounded-full flex items-center justify-center text-white hover:bg-white hover:text-black transition-all group shadow-xl"
+                                            aria-label="Next artwork"
+                                        >
+                                            <ChevronRight size={24} className="group-hover:translate-x-1 transition-transform" />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </section>
     );
 };
 
