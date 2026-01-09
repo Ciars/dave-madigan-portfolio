@@ -6,7 +6,10 @@ import { Users, Plus, Trash2, Key, Loader2, AlertCircle, X } from 'lucide-react'
 export default function UserManager() {
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(true);
+    // Modals state
     const [showModal, setShowModal] = useState(false);
+    const [userToDelete, setUserToDelete] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // Form state
     const [newUserEmail, setNewUserEmail] = useState('');
@@ -87,10 +90,11 @@ export default function UserManager() {
         }
     };
 
-    const handleDeleteUser = async (userId, email) => {
-        if (!window.confirm(`Delete user "${email}"? This cannot be undone.`)) return;
+    const handleDeleteUser = async () => {
+        if (!userToDelete) return;
 
-        const toastId = toast.loading('Deleting user...');
+        setIsDeleting(true);
+        const toastId = toast.loading('Revoking access...');
         try {
             const { data: { session } } = await supabase.auth.getSession();
 
@@ -105,7 +109,7 @@ export default function UserManager() {
                     },
                     body: JSON.stringify({
                         action: 'delete',
-                        userId
+                        userId: userToDelete.id
                     })
                 }
             );
@@ -113,11 +117,14 @@ export default function UserManager() {
             const { error } = await response.json();
             if (error) throw error;
 
-            toast.success('User deleted', { id: toastId });
+            toast.success('Access revoked', { id: toastId });
+            setUserToDelete(null);
             fetchUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
             toast.error(`Failed: ${error.message || error}`, { id: toastId });
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -178,7 +185,7 @@ export default function UserManager() {
                                 </td>
                                 <td className="px-8 py-6 text-right">
                                     <button
-                                        onClick={() => handleDeleteUser(user.id, user.email)}
+                                        onClick={() => setUserToDelete(user)}
                                         className="text-gray-600 hover:text-red-500 transition-all p-3 hover:bg-red-500/10 rounded-full"
                                         title="Revoke Access"
                                     >
@@ -273,6 +280,44 @@ export default function UserManager() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Confirm Delete Modal */}
+            {userToDelete && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-xl p-6" onClick={() => setUserToDelete(null)}>
+                    <div
+                        className="bg-[#111111] rounded-[2.5rem] shadow-2xl max-w-md w-full p-10 border border-red-500/20 animate-in zoom-in-95 duration-300"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex flex-col items-center text-center">
+                            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mb-8 border border-red-500/20">
+                                <Trash2 className="text-red-500" size={32} />
+                            </div>
+
+                            <h3 className="text-3xl font-serif text-white mb-3">Revoke Access?</h3>
+                            <p className="text-gray-500 text-sm leading-relaxed mb-8">
+                                You are about to permanently remove <span className="text-white font-medium">{userToDelete.email}</span> from the studio platform. This action cannot be reversed.
+                            </p>
+
+                            <div className="flex flex-col w-full gap-3">
+                                <button
+                                    onClick={handleDeleteUser}
+                                    disabled={isDeleting}
+                                    className="w-full bg-red-500 text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-red-600 transition-all active:scale-[0.98] disabled:opacity-20 shadow-xl shadow-red-500/10"
+                                >
+                                    {isDeleting ? 'Processing...' : 'Confirm Revocation'}
+                                </button>
+                                <button
+                                    onClick={() => setUserToDelete(null)}
+                                    disabled={isDeleting}
+                                    className="w-full bg-white/5 text-gray-400 px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all active:scale-[0.98]"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}

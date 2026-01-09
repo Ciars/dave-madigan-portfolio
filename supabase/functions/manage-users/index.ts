@@ -29,7 +29,7 @@ serve(async (req) => {
 
         // SECURITY: Whitelist check
         // ⚠️ REPLACE WITH YOUR ACTUAL ADMIN EMAIL(S) ⚠️
-        const ALLOWED_ADMINS = ["INSERT_YOUR_EMAIL_HERE"];
+        const ALLOWED_ADMINS = ["ciaran.madigan@circet.ie", "ciaranmadigan@gmail.com"];
 
         if (!ALLOWED_ADMINS.includes(user.email ?? "")) {
             return new Response(
@@ -56,6 +56,7 @@ serve(async (req) => {
                 await adminClient.from("user_profiles").insert({
                     id: data.user.id,
                     email,
+                    role: 'admin',
                     must_reset_password: true,
                     created_by: user.id,
                 });
