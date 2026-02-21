@@ -12,13 +12,11 @@ export default function SiteManager() {
         hero_title: '',
         hero_subtitle: '',
         hero_image_url: '',
-        about_bio: [],
-        about_collections: []
+        about_bio: []
     });
 
     const [selectedImage, setSelectedImage] = useState(null);
     const [previewUrl, setPreviewUrl] = useState('');
-    const [newCollectionItem, setNewCollectionItem] = useState('');
 
     useEffect(() => {
         fetchContent();
@@ -36,11 +34,10 @@ export default function SiteManager() {
             if (error) throw error;
 
             if (data) {
-                // Ensure bio/collections are arrays if null
+                // Ensure bio is an array if null
                 const safeData = {
                     ...data,
-                    about_bio: data.about_bio || [],
-                    about_collections: data.about_collections || []
+                    about_bio: data.about_bio || []
                 };
                 setContent(safeData);
                 if (data.hero_image_url) setPreviewUrl(data.hero_image_url);
@@ -59,19 +56,6 @@ export default function SiteManager() {
             setSelectedImage(file);
             setPreviewUrl(URL.createObjectURL(file));
         }
-    };
-
-    const handleAddCollection = () => {
-        if (!newCollectionItem.trim()) return;
-        const updated = [...(content.about_collections || []), newCollectionItem.trim()];
-        setContent({ ...content, about_collections: updated });
-        setNewCollectionItem('');
-    };
-
-    const removeCollectionItem = (index) => {
-        const updated = [...(content.about_collections || [])];
-        updated.splice(index, 1);
-        setContent({ ...content, about_collections: updated });
     };
 
     const handleSave = async (e) => {
@@ -109,7 +93,6 @@ export default function SiteManager() {
                     hero_subtitle: content.hero_subtitle,
                     hero_image_url: joyImageUrl,
                     about_bio: content.about_bio,
-                    about_collections: content.about_collections,
                     updated_at: new Date()
                 })
                 .eq('id', 1);
@@ -222,7 +205,7 @@ export default function SiteManager() {
                         </div>
                     </div>
 
-                    <div className="grid lg:grid-cols-2 gap-12">
+                    <div className="grid gap-12">
                         {/* Bio Editor */}
                         <div>
                             <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">Artist Biography</label>
@@ -237,51 +220,6 @@ export default function SiteManager() {
                                 <div className="px-4 py-2 border-t border-white/5 text-[10px] text-gray-600 uppercase tracking-widest text-right">
                                     Markdown Supported
                                 </div>
-                            </div>
-                        </div>
-
-                        {/* Collections List */}
-                        <div>
-                            <label className="block text-[10px] font-bold uppercase tracking-[0.2em] text-gray-500 mb-4">Notable Collections</label>
-
-                            <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden mb-4">
-                                <div className="max-h-[300px] overflow-y-auto">
-                                    {(content.about_collections || []).map((item, idx) => (
-                                        <div key={idx} className="flex items-center justify-between p-4 border-b border-white/5 last:border-0 hover:bg-white/5 transition-colors group">
-                                            <span className="text-sm text-gray-300 font-serif">{item}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeCollectionItem(idx)}
-                                                className="text-gray-600 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all p-1"
-                                            >
-                                                &times;
-                                            </button>
-                                        </div>
-                                    ))}
-                                    {(!content.about_collections || content.about_collections.length === 0) && (
-                                        <div className="p-8 text-center text-gray-600 text-xs uppercase tracking-widest">
-                                            No collections listed
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-2">
-                                <input
-                                    type="text"
-                                    value={newCollectionItem}
-                                    onChange={e => setNewCollectionItem(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddCollection())}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:border-white outline-none transition-all placeholder-gray-700"
-                                    placeholder="Add new collection..."
-                                />
-                                <button
-                                    type="button"
-                                    onClick={handleAddCollection}
-                                    className="px-6 py-2 bg-white text-black rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200"
-                                >
-                                    Add
-                                </button>
                             </div>
                         </div>
                     </div>

@@ -1,106 +1,67 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { Trash2, Plus, UploadCloud, X, Loader2, Folder, Image as ImageIcon, ChevronRight, ArrowLeft, GripVertical, Layers, Grid } from 'lucide-react';
-import { Reorder, motion, useDragControls } from 'framer-motion';
+import { Trash2, Plus, UploadCloud, X, Loader2, Image as ImageIcon, GripVertical, Minus } from 'lucide-react';
+import { Reorder } from 'framer-motion';
 import { toast } from 'sonner';
 
 export default function ArtworkManager() {
-    // view modes: 'root', 'folder', 'flat' -> 'flat' is effectively deprecated or just a readonly view now. 
-    // We will focus on 'root' and 'folder' for the Playlist system.
-    const [view, setView] = useState('root');
-    const [currentCollection, setCurrentCollection] = useState(null); // { id, title, artwork_order }
-
+    // Only one view mode now: flat root list containing artworks and dividers.
     const [items, setItems] = useState([]);
     const [loading, setLoading] = useState(true);
 
     // Upload & Create Modal
     const [showUpload, setShowUpload] = useState(false);
-    const [showCreateFolder, setShowCreateFolder] = useState(false);
-    const [newFolderName, setNewFolderName] = useState('');
+    const [showCreateDivider, setShowCreateDivider] = useState(false);
+    const [newDividerName, setNewDividerName] = useState('');
 
     const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-    const [editingItem, setEditingItem] = useState(null); // { id, title, medium, year, image_url }
-
+    const [editingItem, setEditingItem] = useState(null); // { id, title, medium, year, ..., type }
 
     useEffect(() => {
         fetchContent();
-    }, [view, currentCollection?.id]); // Depend on ID to allow refresh
+    }, []);
 
     const fetchContent = async () => {
         setLoading(true);
         setHasUnsavedChanges(false);
         try {
-            if (view === 'root') {
-                // 1. Fetch Manifest (Root Order)
-                const { data: config } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
-                const manifest = config?.root_structure || [];
+            // 1. Fetch Manifest (Root Order)
+            const { data: config } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
+            const manifest = config?.root_structure || [];
 
-                // 2. Fetch All Candidates
-                const { data: collections } = await supabase.from('collections').select('*');
-                const { data: artworks } = await supabase.from('artworks').select('*').is('collection_id', null);
+            // 2. Fetch All Candidates (Dividers and Artworks)
+            const { data: dividers } = await supabase.from('dividers').select('*');
+            const { data: artworks } = await supabase.from('artworks').select('*');
 
-                // 3. Map items for easy lookup
-                const itemMap = new Map();
-                collections?.forEach(c => itemMap.set(`collection:${c.id}`, { ...c, type: 'folder', manifestId: `collection:${c.id}` }));
-                artworks?.forEach(a => itemMap.set(`artwork:${a.id}`, { ...a, type: 'file', manifestId: `artwork:${a.id}` }));
+            // 3. Map items for easy lookup
+            const itemMap = new Map();
+            dividers?.forEach(d => itemMap.set(`divider:${d.id}`, { ...d, type: 'divider', manifestId: `divider:${d.id}` }));
+            artworks?.forEach(a => itemMap.set(`artwork:${a.id}`, { ...a, type: 'file', manifestId: `artwork:${a.id}` }));
 
-                // 4. Construct Order from Manifest
-                const orderedItems = [];
-                const seenKeys = new Set();
+            // 4. Construct Order from Manifest
+            const orderedItems = [];
+            const seenKeys = new Set();
 
-                // Add Manifest items first
-                manifest.forEach(key => {
-                    if (itemMap.has(key)) {
-                        orderedItems.push(itemMap.get(key));
-                        seenKeys.add(key);
-                    }
-                });
+            // Add Manifest items first
+            manifest.forEach(key => {
+                if (itemMap.has(key)) {
+                    orderedItems.push(itemMap.get(key));
+                    seenKeys.add(key);
+                }
+            });
 
-                // Add Orphans (New items not yet in manifest, or DB drifts)
-                itemMap.forEach((item, key) => {
-                    if (!seenKeys.has(key)) {
+            // Add Orphans (New items not yet in manifest, or DB drifts)
+            itemMap.forEach((item, key) => {
+                if (!seenKeys.has(key)) {
+                    // Filter out old "collection:" strings if any slipped through legacy
+                    if (!key.startsWith('collection:')) {
                         orderedItems.push(item);
                     }
-                });
+                }
+            });
 
-                setItems(orderedItems);
+            setItems(orderedItems);
 
-            } else if (view === 'folder' && currentCollection) {
-                // 1. Fetch Current Collection Manifest
-                // We re-fetch to ensure we have latest order
-                const { data: col } = await supabase.from('collections').select('*').eq('id', currentCollection.id).single();
-                if (!col) throw new Error("Collection not found");
-
-                const manifest = col.artwork_order || [];
-                setCurrentCollection(col); // Update state with latest
-
-                // 2. Fetch Children
-                const { data: artworks } = await supabase.from('artworks').select('*').eq('collection_id', col.id);
-
-                // 3. Map
-                const itemMap = new Map();
-                artworks?.forEach(a => itemMap.set(a.id, { ...a, type: 'file' }));
-
-                // 4. Construct
-                const orderedItems = [];
-                const seenIds = new Set();
-
-                manifest.forEach(id => {
-                    if (itemMap.has(id)) {
-                        orderedItems.push(itemMap.get(id));
-                        seenIds.add(id);
-                    }
-                });
-
-                // Orphans
-                itemMap.forEach((item, id) => {
-                    if (!seenIds.has(id)) {
-                        orderedItems.push(item);
-                    }
-                });
-
-                setItems(orderedItems);
-            }
         } catch (error) {
             console.error('Error fetching content:', error);
             toast.error('Failed to load content');
@@ -109,27 +70,28 @@ export default function ArtworkManager() {
         }
     };
 
-    const handleCreateFolder = async (e) => {
+    const handleCreateDivider = async (e) => {
         e.preventDefault();
-        if (!newFolderName) return;
+        if (!newDividerName) return;
 
-        // 1. Create Collection
-        const { data: newCol, error } = await supabase
-            .from('collections')
-            .insert([{ title: newFolderName, artwork_order: [] }])
+        const toastId = toast.loading('Creating divider...');
+
+        // 1. Create Divider
+        const { data: newDiv, error } = await supabase
+            .from('dividers')
+            .insert([{ title: newDividerName }])
             .select()
             .single();
 
         if (error) {
-            toast.error('Failed to create collection');
+            toast.error('Failed to create divider', { id: toastId });
             return;
         }
 
-        // 2. Update Root Manifest (Append new folder)
-        // We fetch fresh config to be safe
+        // 2. Update Root Manifest (Append new divider)
         const { data: config } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
         const currentManifest = config?.root_structure || [];
-        const newManifest = [...currentManifest, `collection:${newCol.id}`];
+        const newManifest = [...currentManifest, `divider:${newDiv.id}`];
 
         const { error: updateError } = await supabase
             .from('site_config')
@@ -138,19 +100,18 @@ export default function ArtworkManager() {
 
         if (updateError) {
             console.error("Failed to update manifest", updateError);
-            // Warn user but don't crash, the orphan logic will show it anyway
         }
 
-        toast.success('Collection created');
-        setNewFolderName('');
-        setShowCreateFolder(false);
+        toast.success('Divider created', { id: toastId });
+        setNewDividerName('');
+        setShowCreateDivider(false);
         fetchContent();
     };
 
     const handleReorder = (newOrder) => {
         // Deep equality check to prevent accidental triggers
-        const currentIds = items.map(i => i.id).join(',');
-        const newIds = newOrder.map(i => i.id).join(',');
+        const currentIds = items.map(i => i.manifestId).join(',');
+        const newIds = newOrder.map(i => i.manifestId).join(',');
 
         if (currentIds === newIds) return;
 
@@ -162,28 +123,13 @@ export default function ArtworkManager() {
         const toastId = toast.loading('Saving order...');
 
         try {
-            if (view === 'root') {
-                // Save to site_config.root_structure
-                // Map items to "collection:ID" or "artwork:ID"
-                const newManifest = items.map(item =>
-                    item.type === 'folder' ? `collection:${item.id}` : `artwork:${item.id}`
-                );
+            // Map items to "divider:ID" or "artwork:ID"
+            const newManifest = items.map(item => item.manifestId);
 
-                await supabase
-                    .from('site_config')
-                    .update({ root_structure: newManifest })
-                    .eq('id', 1);
-
-            } else if (view === 'folder' && currentCollection) {
-                // Save to collections.artwork_order
-                // Map items to IDs (int)
-                const newManifest = items.map(item => item.id);
-
-                await supabase
-                    .from('collections')
-                    .update({ artwork_order: newManifest })
-                    .eq('id', currentCollection.id);
-            }
+            await supabase
+                .from('site_config')
+                .update({ root_structure: newManifest })
+                .eq('id', 1);
 
             toast.success('Order saved', { id: toastId });
             setHasUnsavedChanges(false);
@@ -200,34 +146,16 @@ export default function ArtworkManager() {
         toast.info('Reorder cancelled');
     };
 
-    const enterFolder = (folder) => {
-        if (hasUnsavedChanges) {
-            if (!window.confirm('You have unsaved reorder changes. Discard them?')) return;
-        }
-        setCurrentCollection(folder); // Will trigger effect
-        setView('folder');
-    };
-
-    const goUp = () => {
-        if (hasUnsavedChanges) {
-            if (!window.confirm('You have unsaved reorder changes. Discard them?')) return;
-        }
-        setView('root');
-        setCurrentCollection(null);
-    };
-
     const handleDelete = async (item) => {
         if (!window.confirm(`Delete "${item.title}"?`)) return;
 
-        const table = item.type === 'folder' ? 'collections' : 'artworks';
+        const table = item.type === 'divider' ? 'dividers' : 'artworks';
         const { error } = await supabase.from(table).delete().match({ id: item.id });
 
         if (error) {
             toast.error('Failed to delete item');
         } else {
             toast.success('Item deleted');
-            // Note: We don't strictly need to remove it from the manifest JSON; 
-            // the fetch logic filters out missing items automatically.
             fetchContent();
         }
     };
@@ -236,18 +164,26 @@ export default function ArtworkManager() {
         e.preventDefault();
         const toastId = toast.loading('Updating metadata...');
         try {
-            const { error } = await supabase
-                .from('artworks')
-                .update({
-                    title: editingItem.title,
-                    medium: editingItem.medium,
-                    year: editingItem.year,
-                    description: editingItem.description,
-                    print_url: editingItem.print_url
-                })
-                .eq('id', editingItem.id);
+            if (editingItem.type === 'divider') {
+                const { error } = await supabase
+                    .from('dividers')
+                    .update({ title: editingItem.title })
+                    .eq('id', editingItem.id);
+                if (error) throw error;
+            } else {
+                const { error } = await supabase
+                    .from('artworks')
+                    .update({
+                        title: editingItem.title,
+                        medium: editingItem.medium,
+                        year: editingItem.year,
+                        description: editingItem.description,
+                        print_url: editingItem.print_url
+                    })
+                    .eq('id', editingItem.id);
 
-            if (error) throw error;
+                if (error) throw error;
+            }
 
             toast.success('Metadata updated', { id: toastId });
             setEditingItem(null);
@@ -280,19 +216,7 @@ export default function ArtworkManager() {
             {/* Header */}
             <div className="sticky top-0 bg-[#0A0A0A]/95 backdrop-blur-xl z-40 pb-6 pt-2 -mt-2 border-b border-white/5 flex items-center justify-between">
                 <div className="flex items-center gap-3 text-2xl font-serif tracking-tight">
-                    <button
-                        onClick={goUp}
-                        disabled={view === 'root'}
-                        className={`hover:bg-white/5 px-2 py-1 rounded-lg transition-all ${view === 'root' ? 'text-white cursor-default' : 'text-gray-600 hover:text-white'}`}
-                    >
-                        Portfolio
-                    </button>
-                    {view === 'folder' && (
-                        <>
-                            <ChevronRight size={20} className="text-gray-800" />
-                            <span className="font-bold text-white">{currentCollection?.title}</span>
-                        </>
-                    )}
+                    <span className="text-white">Portfolio Arrangement</span>
                 </div>
 
                 <div className="flex gap-3">
@@ -303,11 +227,9 @@ export default function ArtworkManager() {
                         </>
                     ) : (
                         <>
-                            {view === 'root' && (
-                                <button onClick={() => setShowCreateFolder(true)} className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">
-                                    <Plus size={16} /> <span className="hidden sm:inline">New Collection</span>
-                                </button>
-                            )}
+                            <button onClick={() => setShowCreateDivider(true)} className="flex items-center gap-2 bg-white/5 border border-white/10 text-white px-5 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-white/10 transition-all">
+                                <Minus size={16} /> <span className="hidden sm:inline">Add Divider</span>
+                            </button>
                             <button onClick={() => setShowUpload(true)} className="flex items-center gap-2 bg-white text-black px-6 py-2.5 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 shadow-xl shadow-white/5 transition-all">
                                 <UploadCloud size={16} /> <span className="hidden sm:inline">Upload Images</span>
                             </button>
@@ -322,30 +244,40 @@ export default function ArtworkManager() {
                     <div className="flex justify-center py-24"><Loader2 className="animate-spin opacity-20" size={32} /></div>
                 ) : items.length === 0 ? (
                     <div className="flex flex-col items-center justify-center py-24 text-gray-400 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                        <Folder size={48} className="mb-4 opacity-20" />
-                        <p>This folder is empty.</p>
+                        <ImageIcon size={48} className="mb-4 opacity-20" />
+                        <p>Your portfolio is empty.</p>
                     </div>
                 ) : (
                     <Reorder.Group axis="y" values={items} onReorder={handleReorder} className="space-y-3">
                         {items.map(item => (
-                            <Reorder.Item key={`${item.type}-${item.id}`} value={item}>
-                                <div className={`
-                                group relative flex items-center gap-5 p-4 rounded-2xl border transition-all duration-300
-                                ${item.type === 'folder' ? 'bg-[#151515] border-white/5 hover:border-white/20 hover:shadow-2xl hover:shadow-black/50' : 'bg-transparent border-transparent hover:bg-white/5 hover:border-white/5'}
-                            `}>
-                                    <div className="cursor-grab active:cursor-grabbing text-gray-700 hover:text-white p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors"><GripVertical size={20} /></div>
-                                    <div
-                                        onClick={() => item.type === 'folder' && enterFolder(item)}
-                                        className={`w-14 h-14 flex items-center justify-center rounded-xl overflow-hidden cursor-pointer shadow-lg transition-transform group-hover:scale-105 ${item.type === 'folder' ? 'bg-white/5 text-white' : 'bg-[#222]'}`}
-                                    >
-                                        {item.type === 'folder' ? <Folder size={24} className="opacity-40" /> : <img src={item.image_url} className="w-full h-full object-cover" />}
+                            <Reorder.Item key={item.manifestId} value={item}>
+                                {item.type === 'divider' ? (
+                                    // DIVIDER BLOCK UI
+                                    <div className="group relative flex items-center gap-5 px-4 py-8 rounded-2xl bg-[#0e0e0e] border border-white/10 transition-all duration-300 hover:border-white/30">
+                                        <div className="cursor-grab active:cursor-grabbing text-gray-700 hover:text-white p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors">
+                                            <GripVertical size={20} />
+                                        </div>
+                                        <div className="flex-1 overflow-hidden flex items-center gap-4">
+                                            <div className="h-[1px] bg-white/10 flex-1"></div>
+                                            <h3 className="font-mono text-xs uppercase tracking-[0.3em] font-bold text-gray-400">{item.title}</h3>
+                                            <div className="h-[1px] bg-white/10 flex-1"></div>
+                                        </div>
+                                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                            <button onClick={() => handleDelete(item)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
+                                        </div>
                                     </div>
-                                    <div className="flex-1 cursor-pointer" onClick={() => item.type === 'folder' && enterFolder(item)}>
-                                        <h3 className="font-medium text-sm tracking-tight text-white mb-0.5">{item.title}</h3>
-                                        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">{item.type === 'folder' ? 'Collection' : item.medium || 'Artwork'}</p>
-                                    </div>
-                                    <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                        {item.type === 'file' && (
+                                ) : (
+                                    // ARTWORK BLOCK UI
+                                    <div className="group relative flex items-center gap-5 p-4 rounded-2xl border border-transparent hover:bg-white/5 hover:border-white/5 transition-all duration-300">
+                                        <div className="cursor-grab active:cursor-grabbing text-gray-700 hover:text-white p-2 -ml-2 rounded-lg hover:bg-white/5 transition-colors"><GripVertical size={20} /></div>
+                                        <div className="w-14 h-14 bg-[#222] flex items-center justify-center rounded-xl overflow-hidden shadow-lg transition-transform group-hover:scale-105">
+                                            <img src={item.image_url} className="w-full h-full object-cover" alt={item.title} />
+                                        </div>
+                                        <div className="flex-1 truncate">
+                                            <h3 className="font-medium text-sm tracking-tight text-white mb-0.5 truncate">{item.title}</h3>
+                                            <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">{item.medium || 'Artwork'}</p>
+                                        </div>
+                                        <div className="flex items-center gap-3 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                                             <button
                                                 onClick={() => setEditingItem(item)}
                                                 className="p-2.5 text-gray-500 hover:text-white hover:bg-white/10 rounded-full transition-all"
@@ -353,34 +285,33 @@ export default function ArtworkManager() {
                                             >
                                                 <ImageIcon size={18} />
                                             </button>
-                                        )}
-                                        <button onClick={() => handleDelete(item)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
+                                            <button onClick={() => handleDelete(item)} className="p-2.5 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"><Trash2 size={18} /></button>
+                                        </div>
                                     </div>
-
-                                </div>
+                                )}
                             </Reorder.Item>
                         ))}
                     </Reorder.Group>
                 )
             }
 
-            {/* Models */}
+            {/* Modals */}
             {
-                showCreateFolder && (
+                showCreateDivider && (
                     <div className="fixed inset-0 bg-black/60 backdrop-blur-md flex items-center justify-center z-[100] p-6">
                         <div className="bg-[#151515] p-10 rounded-3xl shadow-2xl border border-white/5 w-full max-w-md animate-in zoom-in-95 duration-200">
-                            <h3 className="font-serif text-2xl mb-6 text-white tracking-tight">New Collection</h3>
-                            <form onSubmit={handleCreateFolder}>
+                            <h3 className="font-serif text-2xl mb-6 text-white tracking-tight">New Divider</h3>
+                            <form onSubmit={handleCreateDivider}>
                                 <input
                                     autoFocus
-                                    placeholder="Folder Name"
+                                    placeholder="e.g. 2024"
                                     className="w-full bg-white/5 border border-white/10 rounded-xl p-4 mb-8 outline-none focus:border-white text-white placeholder-gray-600 transition-all"
-                                    value={newFolderName}
-                                    onChange={e => setNewFolderName(e.target.value)}
+                                    value={newDividerName}
+                                    onChange={e => setNewDividerName(e.target.value)}
                                 />
                                 <div className="flex justify-end gap-4">
-                                    <button type="button" onClick={() => setShowCreateFolder(false)} className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancel</button>
-                                    <button disabled={!newFolderName} className="bg-white text-black px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-50">Create</button>
+                                    <button type="button" onClick={() => setShowCreateDivider(false)} className="px-6 py-2 text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Cancel</button>
+                                    <button disabled={!newDividerName} className="bg-white text-black px-8 py-3 rounded-xl text-xs font-bold uppercase tracking-widest hover:bg-gray-200 transition-all disabled:opacity-50">Add Divider</button>
                                 </div>
                             </form>
                         </div>
@@ -393,7 +324,6 @@ export default function ArtworkManager() {
                     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4 text-left">
                         <UploadModal
                             onClose={() => setShowUpload(false)}
-                            collectionId={currentCollection?.id}
                             onSuccess={handleUploadComplete}
                         />
 
@@ -401,12 +331,11 @@ export default function ArtworkManager() {
                 )
             }
 
-            {/* Edit Metadata Modal - Mobile Responsive Overhaul */}
+            {/* Edit Metadata Modal */}
             {editingItem && (
                 <div className="fixed inset-0 bg-black z-[100] md:bg-black/60 md:backdrop-blur-md flex items-center justify-center p-0 md:p-6 overflow-y-auto">
                     <div className="bg-[#111111] md:rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in-95 duration-300 min-h-screen md:min-h-0 flex flex-col">
 
-                        {/* Mobile Header */}
                         <div className="flex items-center justify-between p-6 border-b border-white/5 md:hidden">
                             <h3 className="text-xl font-serif">Edit Metadata</h3>
                             <button onClick={() => setEditingItem(null)} className="p-2 text-gray-500"><X size={24} /></button>
@@ -500,7 +429,7 @@ export default function ArtworkManager() {
     );
 }
 
-function UploadModal({ onClose, collectionId, onSuccess }) {
+function UploadModal({ onClose, onSuccess }) {
     const [uploading, setUploading] = useState(false);
     const [stagedFiles, setStagedFiles] = useState([]);
     const [year, setYear] = useState(new Date().getFullYear().toString());
@@ -521,7 +450,6 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
         const toastId = toast.loading('Starting upload...');
 
         try {
-            // New items to append to manifest
             const newIds = [];
             let successCount = 0;
 
@@ -534,7 +462,7 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
                 const { data: { publicUrl } } = supabase.storage.from('artworks').getPublicUrl(fileName);
 
                 const { data: newArt, error } = await supabase.from('artworks').insert([{
-                    title: item.title, year, medium, collection_id: collectionId || null, image_url: publicUrl, sort_order: 0 // Legacy field ignored
+                    title: item.title, year, medium, image_url: publicUrl // removed collection param
                 }]).select().single();
 
                 if (!error && newArt) {
@@ -543,19 +471,12 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
                 }
             }
 
-            // Append to Manifest
+            // Append to Manifest at root
             if (successCount > 0) {
-                if (collectionId) {
-                    const { data: col } = await supabase.from('collections').select('artwork_order').eq('id', collectionId).single();
-                    const currentOrder = col?.artwork_order || [];
-                    const newOrder = [...currentOrder, ...newIds]; // Append
-                    await supabase.from('collections').update({ artwork_order: newOrder }).eq('id', collectionId);
-                } else {
-                    const { data: cfg } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
-                    const currentRoot = cfg?.root_structure || [];
-                    const newRoot = [...currentRoot, ...newIds.map(id => `artwork:${id}`)];
-                    await supabase.from('site_config').update({ root_structure: newRoot }).eq('id', 1);
-                }
+                const { data: cfg } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
+                const currentRoot = cfg?.root_structure || [];
+                const newRoot = [...currentRoot, ...newIds.map(id => `artwork:${id}`)];
+                await supabase.from('site_config').update({ root_structure: newRoot }).eq('id', 1);
             }
 
             toast.success('Upload complete', { id: toastId });
@@ -574,7 +495,6 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
         <div className="fixed inset-0 bg-black z-[100] md:bg-black/60 md:backdrop-blur-md flex items-center justify-center p-0 md:p-6 overflow-hidden">
             <div className="bg-[#111111] md:rounded-3xl shadow-2xl w-full max-w-5xl flex flex-col h-screen md:h-[80vh] overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
 
-                {/* Header */}
                 <div className="p-6 md:p-8 border-b border-white/5 flex justify-between items-center bg-[#151515]">
                     <div>
                         <h2 className="text-2xl font-serif text-white tracking-tight">Image Studio</h2>
@@ -584,7 +504,6 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
                 </div>
 
                 <div className="flex-1 overflow-hidden flex flex-col md:flex-row">
-                    {/* Controls Side */}
                     <div className="w-full md:w-80 p-8 border-b md:border-b-0 md:border-r border-white/5 bg-[#121212] space-y-8">
                         <div className="space-y-4">
                             <div>
@@ -604,7 +523,6 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
                         </label>
                     </div>
 
-                    {/* Preview Side */}
                     <div className="flex-1 p-8 overflow-y-auto bg-[#0A0A0A] custom-scrollbar">
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-6">
                             {stagedFiles.map((f, i) => (
@@ -627,7 +545,6 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
                     </div>
                 </div>
 
-                {/* Footer */}
                 <div className="p-6 md:p-8 border-t border-white/5 flex justify-end gap-6 bg-[#151515]">
                     <button onClick={onClose} className="text-xs font-bold uppercase tracking-widest text-gray-500 hover:text-white transition-colors">Discard</button>
                     <button
@@ -642,4 +559,3 @@ function UploadModal({ onClose, collectionId, onSuccess }) {
         </div>
     )
 }
-

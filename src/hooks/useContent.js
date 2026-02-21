@@ -12,19 +12,18 @@ export const useArtworks = () => {
             try {
                 // 1. Fetch EVERYTHING needed
                 const { data: config } = await supabase.from('site_config').select('root_structure').eq('id', 1).single();
-                const { data: collections } = await supabase.from('collections').select('*');
+                const { data: dividers } = await supabase.from('dividers').select('*');
                 const { data: allArtworks } = await supabase.from('artworks').select('*');
 
-                if (!config || !collections || !allArtworks) {
-                    // Safety valve
+                if (!config || !allArtworks) {
                     setArtworks(fallbackImages);
                     setLoading(false);
                     return;
                 }
 
                 // 2. Map for O(1) Lookup
-                const colMap = new Map(collections.map(c => [c.id, c]));
-                const artMap = new Map(allArtworks.map(a => [a.id, { ...a, src: a.image_url }]));
+                const divMap = new Map((dividers || []).map(d => [d.id, { ...d, type: 'divider' }]));
+                const artMap = new Map((allArtworks || []).map(a => [a.id, { ...a, src: a.image_url, type: 'artwork' }]));
 
                 // 3. Construct the Master List from Root Structure
                 const rootManifest = config.root_structure || [];
@@ -32,37 +31,10 @@ export const useArtworks = () => {
                 let orderedList = [];
 
                 rootManifest.forEach(key => {
-                    if (key.startsWith('collection:')) {
-                        // FIX: Collection IDs are UUID strings, NOT integers.
-                        const colId = key.split(':')[1];
-                        const collection = colMap.get(colId);
-
-                        if (collection) {
-                            // A. Add items from the Manifest (Explicit Order)
-                            if (collection.artwork_order && Array.isArray(collection.artwork_order)) {
-                                collection.artwork_order.forEach(artId => {
-                                    const art = artMap.get(artId);
-                                    if (art) {
-                                        orderedList.push(art);
-                                        seenArtIds.add(art.id);
-                                    }
-                                });
-                            }
-
-                            // B. Orphan Recovery (Safety Net)
-                            // Find any artworks that usually belong to this collection but aren't in the manifest
-                            allArtworks.forEach(art => {
-                                if (art.collection_id === colId && !seenArtIds.has(art.id)) {
-                                    // It belongs here!
-                                    const fullArt = artMap.get(art.id);
-                                    if (fullArt) {
-                                        orderedList.push(fullArt);
-                                        seenArtIds.add(art.id);
-                                    }
-                                }
-                            });
-                        }
-
+                    if (key.startsWith('divider:')) {
+                        const divId = key.split(':')[1];
+                        const div = divMap.get(divId);
+                        if (div) orderedList.push(div);
                     } else if (key.startsWith('artwork:')) {
                         // Artworks use integer IDs
                         const artId = parseInt(key.split(':')[1]);
@@ -74,10 +46,9 @@ export const useArtworks = () => {
                     }
                 });
 
-                // C. Global Orphans (Root items missed by manifest)
-                // Just in case there are root items not in the manifest
+                // 4. Global Orphans (Artworks missing from manifest)
                 allArtworks.forEach(art => {
-                    if (!art.collection_id && !seenArtIds.has(art.id)) {
+                    if (!seenArtIds.has(art.id)) {
                         const fullArt = artMap.get(art.id);
                         if (fullArt) orderedList.push(fullArt);
                     }

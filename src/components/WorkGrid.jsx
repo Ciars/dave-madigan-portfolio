@@ -1,13 +1,16 @@
-import { useState, useCallback, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { useArtworks } from '../hooks/useContent';
 import { X, ChevronLeft, ChevronRight, Plus, ExternalLink } from 'lucide-react';
 import { supabase } from '../supabaseClient';
+import { useMediaQuery } from '../hooks/useMediaQuery';
 
 const WorkGrid = () => {
     const { artworks, loading } = useArtworks();
     const [selectedId, setSelectedId] = useState(null);
     const [direction, setDirection] = useState(0); // -1 for left, 1 for right
+
+    const isDesktop = useMediaQuery('(min-width: 768px)');
 
     const selectedImage = artworks.find(img => img.id === selectedId);
     const currentIndex = artworks.findIndex(img => img.id === selectedId);
@@ -45,6 +48,20 @@ const WorkGrid = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [selectedId, navigate]);
 
+    // Body Scroll Lock for Modal
+    useEffect(() => {
+        if (selectedId) {
+            document.body.style.overflow = 'hidden';
+        } else {
+            document.body.style.overflow = '';
+        }
+
+        // Cleanup on unmount
+        return () => {
+            document.body.style.overflow = '';
+        };
+    }, [selectedId]);
+
     // Animation Variants
     const variants = {
         enter: (d) => ({
@@ -74,53 +91,134 @@ const WorkGrid = () => {
 
     if (loading) return <div className="h-96 flex items-center justify-center font-mono text-xs uppercase tracking-widest text-white">Loading Archive...</div>;
 
-    return (
-        <section id="work" className="py-32 px-6 md:px-12 bg-[#050505]">
-            <div className="container mx-auto">
-                <div className="mb-20">
-                    <span className="section-label">Gallery</span>
-                    <h2 className="text-5xl md:text-7xl font-sans font-bold tracking-tighter text-white">
-                        Selected Works
-                    </h2>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-16">
-                    {artworks.map((image, index) => (
-                        <motion.div
-                            key={image.id}
-                            initial={{ opacity: 0, y: 20 }}
-                            whileInView={{ opacity: 1, y: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: index * 0.05 }}
-                            className="group cursor-pointer"
-                            onClick={() => {
-                                setDirection(0);
-                                setSelectedId(image.id);
-                            }}
-                        >
-                            <div className="relative aspect-[4/5] bg-[#0a0a0a] rounded-2xl overflow-hidden mb-8 border border-white/10">
-                                <img
-                                    src={image.src}
-                                    alt={image.title}
-                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
-                                />
-                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-2 border-white/20 rounded-2xl">
-                                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
-                                        <Plus size={24} className="text-black" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="flex justify-between items-start pr-4">
-                                <div>
-                                    <h3 className="text-2xl font-bold tracking-tight text-white mb-2">{image.title}</h3>
-                                    <p className="text-xs uppercase tracking-widest text-gray-400 font-mono font-bold">{image.medium || 'Oil on Canvas'}</p>
-                                </div>
-                                <span className="text-2xl font-serif italic text-gray-800 font-bold">{image.year || '2024'}</span>
-                            </div>
-                        </motion.div>
-                    ))}
+    const ArtworkCard = ({ image, index }) => (
+        <div
+            key={image.id}
+            className={`group cursor-pointer shrink-0 ${isDesktop ? 'w-[30vw] min-w-[350px]' : 'w-[85vw] max-w-[400px] snap-center px-1'}`}
+            onClick={() => {
+                setDirection(0);
+                setSelectedId(image.id);
+            }}
+        >
+            <div className={`relative ${isDesktop ? 'aspect-[4/5]' : 'aspect-[4/5]'} bg-[#0a0a0a] rounded-2xl overflow-hidden mb-8 border border-white/10`}>
+                <img
+                    src={image.src}
+                    alt={image.title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 opacity-90 group-hover:opacity-100"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center border-2 border-white/20 rounded-2xl">
+                    <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center shadow-2xl scale-75 group-hover:scale-100 transition-transform duration-500">
+                        <Plus size={24} className="text-black" />
+                    </div>
                 </div>
             </div>
+            <div className="flex justify-between items-start pr-4">
+                <div>
+                    <h3 className="text-2xl font-bold tracking-tight text-white mb-2">{image.title}</h3>
+                    <p className="text-xs uppercase tracking-widest text-gray-400 font-mono font-bold">{image.medium || 'Oil on Canvas'}</p>
+                </div>
+                <span className="text-2xl font-serif italic text-gray-800 font-bold">{image.year || '2024'}</span>
+            </div>
+        </div>
+    );
+
+    const DividerBlock = ({ item, isDesktop }) => (
+        <div
+            key={item.id}
+            className={`flex items-center justify-center shrink-0 ${isDesktop ? 'h-[60vh] w-[15vw] min-w-[150px]' : 'h-[60vh] w-[85vw] max-w-[400px] snap-center px-4'}`}
+        >
+            <div className="relative flex items-center justify-center h-full w-full">
+                {/* Minimalist vertical line */}
+                <div className="absolute w-[1px] h-full bg-white/10 left-1/2 -translate-x-1/2"></div>
+                {/* Rotated text block that cuts the line */}
+                <h3 className="font-mono text-xl md:text-3xl font-bold text-gray-400 uppercase tracking-[0.5em] -rotate-90 whitespace-nowrap bg-[#050505] py-12 px-2 z-10 transition-colors hover:text-white">
+                    {item.title}
+                </h3>
+            </div>
+        </div>
+    );
+
+    const DesktopGallery = ({ artworks, ArtworkCard }) => {
+        const targetRef = useRef(null);
+        const [progress, setProgress] = useState(0);
+
+        useEffect(() => {
+            const handleScroll = () => {
+                if (!targetRef.current) return;
+
+                const element = targetRef.current;
+                const rect = element.getBoundingClientRect();
+
+                // Calculate how far we've scrolled through the sticky container
+                const scrollDistance = -rect.top;
+                const scrollableHeight = rect.height - window.innerHeight;
+
+                // Clamp progress between 0 and 1
+                let newProgress = scrollDistance / scrollableHeight;
+                newProgress = Math.max(0, Math.min(newProgress, 1));
+
+                setProgress(newProgress);
+            };
+
+            window.addEventListener('scroll', handleScroll, { passive: true });
+            // Initial calculation
+            handleScroll();
+
+            return () => window.removeEventListener('scroll', handleScroll);
+        }, []);
+
+        // Translate the percentage into CSS translation string
+        const translateX = `calc(-${progress * 100}% + ${progress * 100}vw)`;
+
+        return (
+            <div ref={targetRef} className="relative h-[400vh]">
+                <div className="sticky top-0 h-screen flex flex-col justify-center overflow-x-clip">
+                    <div className="container mx-auto px-6 md:px-12 mb-12 shrink-0 pt-20">
+                        <span className="section-label">Gallery</span>
+                        <h2 className="text-5xl md:text-7xl font-sans font-bold tracking-tighter text-white">
+                            Selected Works
+                        </h2>
+                    </div>
+                    <motion.div
+                        style={{ transform: `translateX(${translateX})` }}
+                        className="flex gap-16 px-6 md:px-12 pb-20 w-max items-center transition-transform duration-0 ease-linear"
+                    >
+                        {artworks.map((item, index) => (
+                            item.type === 'divider' ? (
+                                <DividerBlock item={item} isDesktop={true} key={`div-${item.id}`} />
+                            ) : (
+                                <ArtworkCard image={item} index={index} key={`art-${item.id}`} />
+                            )
+                        ))}
+                    </motion.div>
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <section id="work" className="bg-[#050505]">
+            {isDesktop ? (
+                <DesktopGallery artworks={artworks} ArtworkCard={ArtworkCard} />
+            ) : (
+                <div className="py-24">
+                    <div className="px-6 mb-12">
+                        <span className="section-label">Gallery</span>
+                        <h2 className="text-5xl font-sans font-bold tracking-tighter text-white">
+                            Selected Works
+                        </h2>
+                    </div>
+                    <div className="flex overflow-x-auto snap-x snap-mandatory hide-scrollbars pb-12 w-full gap-4 px-6 md:px-12">
+                        {artworks.map((item, index) => (
+                            item.type === 'divider' ? (
+                                <DividerBlock item={item} isDesktop={false} key={`div-${item.id}`} />
+                            ) : (
+                                <ArtworkCard image={item} index={index} key={`art-${item.id}`} />
+                            )
+                        ))}
+                    </div>
+                </div>
+            )}
 
             <AnimatePresence>
                 {selectedId && selectedImage && (
