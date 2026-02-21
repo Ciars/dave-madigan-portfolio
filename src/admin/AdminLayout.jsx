@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate, useLocation, Outlet, Link } from 'react-router-dom';
-import { LayoutDashboard, Image, Calendar, Users, LogOut, Menu, X, Settings, Globe, UserSquare } from 'lucide-react';
+import { LayoutDashboard, Image, Calendar, Users, LogOut, Menu, X, Settings, Globe, UserSquare, FileText } from 'lucide-react';
 import { Toaster } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -51,6 +51,7 @@ export default function AdminLayout() {
     const menuItems = [
         { path: '/admin/dashboard', label: 'Overview', icon: LayoutDashboard },
         { path: '/admin/site-content', label: 'Site Content', icon: Globe },
+        // { path: '/admin/articles', label: 'Articles', icon: FileText }, // Hidden — reactivate later
         { path: '/admin/artworks', label: 'Artworks', icon: Image },
         { path: '/admin/exhibitions', label: 'Exhibitions', icon: Calendar },
         { path: '/admin/subscribers', label: 'Subscribers', icon: Users },

@@ -4,6 +4,8 @@ import { supabase } from './supabaseClient';
 import Navigation from './components/Navigation';
 import Hero from './components/Hero';
 import About from './components/About';
+import ArticlesSection from './components/ArticlesSection';
+import ArticleView from './components/ArticleView';
 import WorkGrid from './components/WorkGrid';
 import Exhibitions from './components/Exhibitions';
 import Contact from './components/Contact';
@@ -16,6 +18,8 @@ import Settings from './admin/Settings';
 import SiteManager from './admin/SiteManager';
 import UserManager from './admin/UserManager';
 import ForcePasswordReset from './admin/ForcePasswordReset';
+import ArticleManager from './admin/ArticleManager';
+import ArticleEditor from './admin/ArticleEditor';
 
 function MainSite() {
     const [config, setConfig] = useState(null);
@@ -37,6 +41,7 @@ function MainSite() {
             <Hero />
             <WorkGrid />
             <About />
+            {/* <ArticlesSection /> */}{/* Hidden — reactivate later */}
             <Exhibitions />
             <Contact footerSettings={footer} />
         </main>
@@ -135,6 +140,7 @@ function App() {
             <Routes>
                 {/* Public Site */}
                 <Route path="/" element={<MainSite />} />
+                {/* <Route path="/article/:slug" element={<ArticleView />} /> */}{/* Hidden — reactivate later */}
 
                 {/* Auth */}
                 <Route path="/login" element={<LoginPage />} />
@@ -147,6 +153,11 @@ function App() {
                     <Route index element={<Overview />} />
                     <Route path="dashboard" element={<Overview />} />
                     <Route path="site-content" element={<SiteManager />} />
+                    {/* Hidden — reactivate later
+                    <Route path="articles" element={<ArticleManager />} />
+                    <Route path="articles/new" element={<ArticleEditor />} />
+                    <Route path="articles/edit/:id" element={<ArticleEditor />} />
+                    */}
                     <Route path="artworks" element={<ArtworkManager />} />
                     <Route path="exhibitions" element={<ExhibitionManager />} />
                     <Route path="subscribers" element={<SubscriberManager />} />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { fallbackImages, exhibitions, currentExhibition } from '../data/content';
+import { fallbackImages } from '../data/content';
 
 export const useArtworks = () => {
     // Start with empty or fallback
@@ -69,5 +69,31 @@ export const useArtworks = () => {
 };
 
 export const useExhibitions = () => {
-    return { exhibitions, currentExhibition };
+    const [exhibitions, setExhibitions] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchExhibitions = async () => {
+            try {
+                const { data, error } = await supabase
+                    .from('exhibitions')
+                    .select('*')
+                    .order('year', { ascending: false })
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setExhibitions(data || []);
+            } catch (err) {
+                console.error("Error loading exhibitions:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchExhibitions();
+    }, []);
+
+    // For now, setting currentExhibition to null to fall back to standard list
+    // unless you want to add an 'is_current' flag to the database.
+    return { exhibitions, currentExhibition: null, loading };
 };

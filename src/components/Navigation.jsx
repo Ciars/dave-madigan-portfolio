@@ -8,6 +8,7 @@ const Navigation = ({ title }) => {
     const navItems = [
         { name: 'Works', href: '#work' },
         { name: 'About', href: '#about' },
+        // { name: 'Articles', href: '#articles' }, // Hidden — reactivate later
         { name: 'Exhibitions', href: '#exhibitions' },
         { name: 'Contact', href: '#contact' },
     ];
