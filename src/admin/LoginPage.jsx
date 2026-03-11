@@ -50,7 +50,12 @@ export default function LoginPage() {
             return;
         }
         setLoading(true);
-        const { error } = await supabase.auth.signInWithOtp({ email });
+        const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+                emailRedirectTo: `${window.location.origin}/admin/dashboard`,
+            },
+        });
         if (error) {
             toast.error(error.message);
         } else {
