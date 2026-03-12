@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { contact } from '../data/content';
-import { Send, Loader2, CheckCircle2 } from 'lucide-react';
+import { Send, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+
+const WEB3FORMS_KEY = import.meta.env.VITE_WEB3FORMS_KEY;
 
 const Contact = ({ footerSettings = {} }) => {
     const {
@@ -11,19 +13,62 @@ const Contact = ({ footerSettings = {} }) => {
     } = footerSettings;
 
     const [formState, setFormState] = useState({ name: '', email: '', message: '' });
-    const [status, setStatus] = useState('idle');
+    const [status, setStatus] = useState('idle'); // idle | loading | success | error
+    const [botField, setBotField] = useState(''); // honeypot
 
     const handleChange = (e) => setFormState({ ...formState, [e.target.name]: e.target.value });
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Honeypot check — bots fill hidden fields
+        if (botField) return;
+
         setStatus('loading');
-        setTimeout(() => {
-            const body = `${formState.message}\n\nFrom: ${formState.name} (${formState.email})`;
-            window.location.href = `mailto:${email}?subject=Inquiry&body=${encodeURIComponent(body)}`;
-            setStatus('success');
-            setFormState({ name: '', email: '', message: '' });
-        }, 800);
+
+        try {
+            const response = await fetch('https://api.web3forms.com/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    access_key: WEB3FORMS_KEY,
+                    subject: `New inquiry from ${formState.name}`,
+                    from_name: formState.name,
+                    name: formState.name,
+                    email: formState.email,
+                    message: formState.message,
+                }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                setStatus('success');
+                setFormState({ name: '', email: '', message: '' });
+                // Reset to idle after 5 seconds so they can send another
+                setTimeout(() => setStatus('idle'), 5000);
+            } else {
+                console.error('Web3Forms error:', data);
+                setStatus('error');
+            }
+        } catch (err) {
+            console.error('Submission error:', err);
+            setStatus('error');
+        }
+    };
+
+    const buttonLabel = {
+        idle: 'Send Message',
+        loading: 'Sending…',
+        success: 'Message Sent!',
+        error: 'Failed — Try Again',
+    };
+
+    const ButtonIcon = {
+        idle: <Send size={18} />,
+        loading: <Loader2 className="animate-spin" size={18} />,
+        success: <CheckCircle2 size={18} />,
+        error: <AlertCircle size={18} />,
     };
 
     return (
@@ -57,6 +102,17 @@ const Contact = ({ footerSettings = {} }) => {
 
                     <div className="lg:col-span-7">
                         <form onSubmit={handleSubmit} className="space-y-10">
+                            {/* Honeypot field — hidden from real users, bots fill it */}
+                            <input
+                                type="text"
+                                name="botcheck"
+                                value={botField}
+                                onChange={(e) => setBotField(e.target.value)}
+                                style={{ display: 'none' }}
+                                tabIndex="-1"
+                                autoComplete="off"
+                            />
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                 <div>
                                     <label className="section-label">Full Name</label>
@@ -95,13 +151,25 @@ const Contact = ({ footerSettings = {} }) => {
                                     placeholder="Tell me about your vision"
                                 />
                             </div>
+
+                            {status === 'error' && (
+                                <p className="text-red-400 text-sm">
+                                    Something went wrong. Please try again or email directly.
+                                </p>
+                            )}
+
                             <button
                                 type="submit"
-                                disabled={status === 'loading'}
-                                className="px-16 py-6 bg-white text-black font-bold uppercase text-xs tracking-widest rounded-full hover:bg-gray-200 transition-all flex items-center gap-4"
+                                disabled={status === 'loading' || status === 'success'}
+                                className={`px-16 py-6 font-bold uppercase text-xs tracking-widest rounded-full transition-all flex items-center gap-4 ${status === 'success'
+                                        ? 'bg-green-500 text-white'
+                                        : status === 'error'
+                                            ? 'bg-red-500 text-white hover:bg-red-400'
+                                            : 'bg-white text-black hover:bg-gray-200'
+                                    }`}
                             >
-                                {status === 'loading' ? <Loader2 className="animate-spin" /> : status === 'success' ? <CheckCircle2 /> : <Send size={18} />}
-                                {status === 'loading' ? 'Sending' : status === 'success' ? 'Email Client Opened' : 'Send Message'}
+                                {ButtonIcon[status]}
+                                {buttonLabel[status]}
                             </button>
                         </form>
                     </div>
