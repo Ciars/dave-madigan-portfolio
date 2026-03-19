@@ -22,8 +22,15 @@ const WorkGrid = () => {
         if (currentIndex === -1) return;
         setDirection(newDirection);
         let newIndex = currentIndex + newDirection;
-        if (newIndex < 0) newIndex = artworks.length - 1;
-        if (newIndex >= artworks.length) newIndex = 0;
+        // Skip dividers
+        let attempts = 0;
+        while (attempts < artworks.length) {
+            if (newIndex < 0) newIndex = artworks.length - 1;
+            if (newIndex >= artworks.length) newIndex = 0;
+            if (artworks[newIndex].type !== 'divider') break;
+            newIndex += newDirection;
+            attempts++;
+        }
         setSelectedId(artworks[newIndex].id);
         setShowMobileInfo(false);
     }, [currentIndex, artworks]);
